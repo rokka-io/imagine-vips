@@ -214,6 +214,8 @@ class Image extends AbstractImage
             }
         }
         $image = $image->extendImage($this->getSize(), $start)->getVips();
+
+        //needs upcoming vips 8.6
         $this->vips = $this->vips->composite([$this->vips, $image], [2]);
 
         return $this;
