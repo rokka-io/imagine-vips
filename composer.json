@@ -1,6 +1,6 @@
 {
     "name": "rokka/imagine-vips",
-    "description": "Vips adapter for imagine",
+    "description": "libvips adapter for imagine",
     "keywords": [
         "image manipulation",
         "image processing",
