@@ -1,6 +1,6 @@
 # libvips adapter for imagine
  
- This fork provides a [libvips](https://jcupitt.github.io/libvips/) integration for [imagine](https://imagine.readthedocs.io/en/latest/). The as of mid november 2017 not yet released version 8.6 is recommended for some functions. But 8.5 works for most too.
+ This package provides a [libvips](https://jcupitt.github.io/libvips/) integration for [imagine](https://imagine.readthedocs.io/en/latest/). The as of mid november 2017 not yet released version 8.6 is recommended for some functions. But 8.5 works for most too.
  
  You also need the [php-vips-ext](https://github.com/jcupitt/php-vips-ext) extension  and the [php-vips](https://github.com/jcupitt/php-vips) classes, add them to your composer.json with
  ```
@@ -34,7 +34,7 @@ Layers can theoretically be supported, BUT there's no save support in vips for l
 
 ## Saving files
 
-Natively supported by vips are jpg, png and webp. For the rest this adapter falls back to theImagick or GD implementation.
+Natively supported by vips are jpg, png and webp. For the rest this adapter falls back to the Imagick or GD implementation.
 
 ## Contribution
 
