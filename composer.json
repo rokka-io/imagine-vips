@@ -1,0 +1,53 @@
+{
+    "name": "rokka/imagine-vips",
+    "description": "Vips adapter for imagine",
+    "keywords": [
+        "image manipulation",
+        "image processing",
+        "drawing",
+        "graphics",
+        "vips",
+        "libvips",
+        "php-vips"
+    ],
+    "homepage": "https://github.com/rokka-io/imagine-vips",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "rokka",
+            "email": "contact@rokka.io",
+            "homepage": "https://rokka.io"
+        }
+    ],
+    "config": {
+        "bin-dir": "bin"
+    },
+    "require": {
+        "php": "~7.0",
+        "ext-vips": "^1.0.7",
+        "imagine/imagine": "^0.7.1",
+        "jcupitt/vips": "^1.0.2"
+
+    },
+    "suggest": {
+        "ext-gd": "to use the GD implementation fallback for saving",
+        "ext-imagick": "to use the Imagick implementation fallback for saving"
+    },
+    "autoload": {
+        "psr-0": {
+            "Imagine": "lib/"
+        }
+    },
+    "archive": {
+        "exclude": [
+            "/.*",
+            "/tests",
+            "/vendor",
+            "/bin",
+            "docs/_build",
+            "Imagine-*.tgz",
+            "imagine-*.phar",
+            "composer.phar"
+        ]
+    }
+}
