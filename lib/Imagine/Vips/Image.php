@@ -100,10 +100,19 @@ class Image extends AbstractImage
         return $this->vips;
     }
 
-    public function setVips($vips)
+    /**
+     * @param $vips
+     * @param bool $updatePalette  In case the palette should changed and should be updated
+     *
+     * @return self
+     */
+    public function setVips($vips, $updatePalette = false)
     {
         $this->vips = $vips;
-        $this->updatePalette();
+        if ($updatePalette) {
+            $this->updatePalette();
+        }
+        return $this;
     }
 
     /**
@@ -431,7 +440,7 @@ class Image extends AbstractImage
         }
         $new = $new->bandjoin($mask);
         $newImage = clone $this;
-        $newImage->setVips($new);
+        $newImage->setVips($new, true);
 
         return $newImage;
     }
@@ -451,7 +460,7 @@ class Image extends AbstractImage
         $lch = $lch->colourspace(Interpretation::B_W);
         //$lch = $lch->extract_band(0);
         $newImage = clone $this;
-        $newImage->setVips($lch);
+        $newImage->setVips($lch, true);
 
         return $newImage;
     }
@@ -557,15 +566,16 @@ class Image extends AbstractImage
         try {
             //try to remove icc-profile-data, not sure that's always correct, for srgb and 'bw' it seems to.
             $vipsNew->remove('icc-profile-data');
-        } catch (VipsException $e) {
-        }
+        } catch (VipsException $e) {}
+
         $profile = $palette->profile();
         // convert to a ICC profile, if it's not the default one
         $defaultProfile = $this->getDefaultProfileForInterpretation($vipsNew);
         if ($profile->name() != $defaultProfile) {
             $vipsNew = $this->applyProfile($palette->profile(), $vipsNew);
         }
-        $new->setVips($vipsNew);
+
+        $new->setVips($vipsNew, true);
 
         return $new;
     }
@@ -585,7 +595,7 @@ class Image extends AbstractImage
     {
         $new = clone $this;
         $vips = $new->getVips();
-        $new->setVips($this->applyProfile($profile, $vips));
+        $new->setVips($this->applyProfile($profile, $vips), true);
 
         return $new;
     }
