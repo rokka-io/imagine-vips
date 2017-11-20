@@ -250,8 +250,6 @@ class Image extends AbstractImage
         // Extend this 1x1 pixel to match the origin image dimensions.
         $vips = $pixel->embed(0, 0, $width, $height, ['extend' => Extend::COPY]);
         $vips = $vips->copy(['interpretation' => self::getInterpretation($color->getPalette())]);
-        // Bandwise join the rest of the channels including the alpha channel.
-
         return $vips;
     }
 
@@ -650,6 +648,19 @@ class Image extends AbstractImage
     protected function updatePalette()
     {
         $this->palette = Imagine::createPalette($this->vips);
+    }
+
+    protected static function getInterpretation(PaletteInterface $palette)
+    {
+        if ($palette instanceof RGB) {
+            return Interpretation::SRGB;
+        }
+        if ($palette instanceof Grayscale) {
+            return Interpretation::B_W;
+        }
+        if ($palette instanceof CMYK) {
+            return Interpretation::CMYK;
+        }
     }
 
     /**
