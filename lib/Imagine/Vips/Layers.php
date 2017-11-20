@@ -13,6 +13,8 @@ namespace Imagine\Vips;
 
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
+use Imagine\Image\Metadata\MetadataBag;
+use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
 {
@@ -20,6 +22,10 @@ class Layers extends AbstractLayers
      * @var Image
      */
     private $image;
+
+    private $layers = [];
+
+    private $resources = [];
 
     /**
      * @var int
@@ -29,6 +35,22 @@ class Layers extends AbstractLayers
     public function __construct(Image $image)
     {
         $this->image = $image;
+        $this->palette = $image->palette();
+
+        $vips = $image->getVips();
+        //try extracting layers
+        try {
+            if ($vips->get('page-height')) {
+                $page_height = $vips->get('page-height');
+                $total_height = $vips->height;
+                $total_width = $vips->width;
+                for ($i = 0; $i < ($total_height / $page_height); ++$i) {
+                    $this->resources[$i] = $vips->crop(0, $page_height * $i, $total_width, $page_height);
+                }
+                $image->setVips($this->resources[0]);
+            }
+        } catch (Exception $e) {
+        }
     }
 
     /**
@@ -142,10 +164,14 @@ class Layers extends AbstractLayers
      */
     private function extractAt($offset)
     {
-        if ($offset > 0) {
-            throw new RuntimeException("The vips adapter doesn't support layered images. Only the first one is available.");
+        if (!isset($this->layers[$offset])) {
+            try {
+                $this->layers[$offset] = new Image($this->resources[$offset], $this->palette, new MetadataBag());
+            } catch (Exception $e) {
+                throw new RuntimeException(sprintf('Failed to extract layer %d', $offset), $e->getCode(), $e);
+            }
         }
 
-        return $this->image;
+        return $this->layers[$offset];
     }
 }
