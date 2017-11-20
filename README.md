@@ -51,7 +51,7 @@ Most of them are not that important to us, so any contributions are welcome. Dra
   
 ### Layers
 
-Currently, only the first frame is loaded and available for image manipulation.
+Currently, only the first frame is loaded and available for image manipulation. There's a basic implementation of layers in the [layers-support](https://github.com/rokka-io/imagine-vips/tree/layers-support) branch. It loads an animated gif into the different layers. More work needs to be done. See also [this issue](https://github.com/rokka-io/imagine-vips/issues/1).
 
 Layers can theoretically be supported, BUT there's no save support in vips for layers (mainly animated gifs). So in case you need them, vips is currently the wrong library for you. And they don't plan to add it. So not sure, how much worth an effort for supporting that is. We could read them and made them accessible through the layers function and maybe safe them via imagick or gd, dunno yet.
 
