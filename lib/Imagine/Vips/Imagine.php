@@ -70,12 +70,12 @@ class Imagine extends AbstractImagine
         }
     }
 
-    public function open($path)
+    public function open($path, $loadOptions = [])
     {
         $path = $this->checkPath($path);
 
         try {
-            $loadOptions = $this->getLoadOptions(VipsImage::findLoad($path));
+            $loadOptions = $this->getLoadOptions(VipsImage::findLoad($path), $loadOptions);
             $vips = VipsImage::newFromFile($path, $loadOptions);
 
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readFile($path));
@@ -97,10 +97,10 @@ class Imagine extends AbstractImagine
     /**
      * {@inheritdoc}
      */
-    public function load($string)
+    public function load($string, $loadOptions = [])
     {
         try {
-            $loadOptions = $this->getLoadOptions(VipsImage::findLoadBuffer($string));
+            $loadOptions = $this->getLoadOptions(VipsImage::findLoadBuffer($string), $loadOptions);
             $vips = VipsImage::newFromBuffer($string, '', $loadOptions);
 
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readData($string));
@@ -167,14 +167,21 @@ class Imagine extends AbstractImagine
         return $palette;
     }
 
-    protected function getLoadOptions($loader)
+    protected function getLoadOptions($loader, $loadOptions = [])
     {
         $options = [];
         switch ($loader) {
             case 'VipsForeignLoadJpegFile':
             case 'VipsForeignLoadJpegBuffer':
                 $options['autorotate'] = true;
+                break;
+            case 'VipsForeignLoadGifFile':
+            case 'VipsForeignLoadGifBuffer':
+                $options['n'] = -1; // not sure this should be enabled by default, to discuss
+                break;
         }
+        $options = array_merge($loadOptions, $options);
+        // FIXME: remove not allowed options
 
         return $options;
     }
