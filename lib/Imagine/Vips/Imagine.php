@@ -76,7 +76,6 @@ class Imagine extends AbstractImagine
         try {
             $loadOptions = $this->getLoadOptions(VipsImage::findLoadBuffer($string));
             $vips = VipsImage::newFromBuffer($string, '', $loadOptions);
-            $vips = $this->importIccProfile($vips);
 
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readData($string));
         } catch (\Exception $e) {
@@ -140,22 +139,6 @@ class Imagine extends AbstractImagine
         }
 
         return $palette;
-    }
-
-    /**
-     * @param $vips
-     *
-     * @return \Jcupitt\Vips\Image
-     */
-    protected function importIccProfile($vips)
-    {
-        try {
-            return $vips->icc_import(['embedded' => true]);
-        } catch (Exception $e) {
-            //no problem if no icc is embedded
-        }
-
-        return $vips;
     }
 
     protected function getLoadOptions($loader)
