@@ -27,6 +27,7 @@ use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
 use Imagine\Image\PointInterface;
 use Imagine\Image\ProfileInterface;
+use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\BandFormat;
 use Jcupitt\Vips\Direction;
 use Jcupitt\Vips\Exception as VipsException;
@@ -39,6 +40,8 @@ use Jcupitt\Vips\Interpretation;
  */
 class Image extends AbstractImage
 {
+    const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB_IEC61966-2-1_black_scaled.icc';
+    const ICC_DEFAULT_PROFILE_BW = 'ISOcoated_v2_grey1c_bas.ICC';
     /**
      * @var \Jcupitt\Vips\Image
      */
@@ -55,9 +58,12 @@ class Image extends AbstractImage
     private $strip = false;
 
     private static $colorspaceMapping = [
-        PaletteInterface::PALETTE_CMYK => \Imagick::COLORSPACE_CMYK,
-        PaletteInterface::PALETTE_RGB => \Imagick::COLORSPACE_RGB,
-        PaletteInterface::PALETTE_GRAYSCALE => \Imagick::COLORSPACE_GRAY,
+        PaletteInterface::PALETTE_RGB => Interpretation::SRGB,
+        PaletteInterface::PALETTE_GRAYSCALE => Interpretation::B_W,
+    ];
+
+    private static $interpretationIccProfileMapping = [
+        Interpretation::B_W => self::ICC_DEFAULT_PROFILE_BW,
     ];
 
     /**
@@ -536,12 +542,36 @@ class Image extends AbstractImage
      */
     public function usePalette(PaletteInterface $palette)
     {
+        $new = clone $this;
+        $vipsNew = $new->getVips();
+
         if (!isset(self::$colorspaceMapping[$palette->name()])) {
-            throw new InvalidArgumentException(sprintf('The palette %s is not supported by Vips driver', $palette->name()));
+            $newColorspace = Interpretation::SRGB;
+        } else {
+            $newColorspace = self::$colorspaceMapping[$palette->name()];
         }
 
-        /* FIXME: implement palette support.. */
-        return $this;
+        try {
+            $vipsNew = $vipsNew->icc_import(['embedded' => true]);
+        } catch (VipsException $e) {
+            //just move on, if there's no icc data
+        }
+        $vipsNew = $vipsNew->colourspace($newColorspace);
+
+        try {
+            //try to remove icc-profile-data, not sure that's always correct, for srgb and 'bw' it seems to.
+            $vipsNew->remove('icc-profile-data');
+        } catch (VipsException $e) {
+        }
+        $profile = $palette->profile();
+        // convert to a ICC profile, if it's not the default one
+        $defaultProfile = $this->getDefaultProfileForInterpretation($vipsNew);
+        if ($profile->name() != $defaultProfile) {
+            $vipsNew = $this->applyProfile($palette->profile(), $vipsNew);
+        }
+        $new->setVips($vipsNew);
+
+        return $new;
     }
 
     /**
@@ -557,8 +587,11 @@ class Image extends AbstractImage
      */
     public function profile(ProfileInterface $profile)
     {
-        //FIXME: implement in vips
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+        $new = clone $this;
+        $vips = $new->getVips();
+        $new->setVips($this->applyProfile($profile, $vips));
+
+        return $new;
     }
 
     public static function getColorArrayAlpha(ColorInterface $color): array
@@ -581,6 +614,20 @@ class Image extends AbstractImage
         }
     }
 
+    protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
+    {
+        $defaultProfile = $this->getDefaultProfileForInterpretation($vips);
+        $vips = $vips->icc_transform(
+            VipsProfile::fromRawData($profile->data())->path(),
+            [
+                'embedded' => true,
+                'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
+            ]
+        );
+
+        return $vips;
+    }
+
     protected function extendImage(BoxInterface $box, PointInterface $start)
     {
         $color = new \Imagine\Image\Palette\Color\RGB(new RGB(), [255, 255, 255], 0);
@@ -599,19 +646,6 @@ class Image extends AbstractImage
         $this->palette = Imagine::createPalette($this->vips);
     }
 
-    protected static function getInterpretation(PaletteInterface $palette)
-    {
-        if ($palette instanceof RGB) {
-            return Interpretation::SRGB;
-        }
-        if ($palette instanceof Grayscale) {
-            return Interpretation::GREY16;
-        }
-        if ($palette instanceof CMYK) {
-            return Interpretation::CMYK;
-        }
-    }
-
     /**
      * @return ImagineInterface
      */
@@ -625,6 +659,21 @@ class Image extends AbstractImage
         }
 
         return $imagine->load($this->vips->pngsave_buffer(['interlace' => false]));
+    }
+
+    /**
+     * @param $vips
+     *
+     * @return mixed|string
+     */
+    protected function getDefaultProfileForInterpretation($vips)
+    {
+        $defaultProfile = self::ICC_DEFAULT_PROFILE_DEFAULT;
+        if (isset(self::$interpretationIccProfileMapping[$vips->interpretation])) {
+            $defaultProfile = self::$interpretationIccProfileMapping[$vips->interpretation];
+        }
+
+        return $defaultProfile;
     }
 
     /**
@@ -748,19 +797,6 @@ class Image extends AbstractImage
         }
 
         return $mimeTypes[$format];
-    }
-
-    /**
-     * Sets colorspace and image type, assigns the palette.
-     *
-     * @param PaletteInterface $palette
-     *
-     * @throws InvalidArgumentException
-     */
-    private function setColorspace(PaletteInterface $palette)
-    {
-        //FIXME: implement in vips
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
     private function getColorArray(ColorInterface $color): array

@@ -44,8 +44,6 @@ Not implemented yet
  * Methods:
   * fill
   * histogram
-  * profile
-  * setColorspace
  * Filters:
   * colorize
 

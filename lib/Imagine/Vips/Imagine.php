@@ -18,7 +18,10 @@ use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Palette\CMYK;
 use Imagine\Image\Palette\Color\ColorInterface;
 use Imagine\Image\Palette\Grayscale;
+use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
+use Imagine\Image\Profile;
+use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\Exception;
 use Jcupitt\Vips\Image as VipsImage;
 use Jcupitt\Vips\Interpretation;
@@ -48,7 +51,6 @@ class Imagine extends AbstractImagine
         try {
             $loadOptions = $this->getLoadOptions(VipsImage::findLoad($path));
             $vips = VipsImage::newFromFile($path, $loadOptions);
-            $vips = $this->importIccProfile($vips);
 
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readFile($path));
         } catch (\Exception $e) {
@@ -111,7 +113,7 @@ class Imagine extends AbstractImagine
      *
      * @throws NotSupportedException
      *
-     * @return CMYK|Grayscale|RGB
+     * @return PaletteInterface
      */
     public static function createPalette(VipsImage $vips)
     {
@@ -119,16 +121,25 @@ class Imagine extends AbstractImagine
             case Interpretation::RGB:
             case Interpretation::RGB16:
             case Interpretation::SRGB:
-                return new RGB();
+                $palette = new RGB();
+                break;
             case Interpretation::CMYK:
-            case Interpretation::LAB:
-                return new CMYK();
+                $palette = new CMYK();
+                break;
             case Interpretation::GREY16:
             case Interpretation::B_W:
-                return new Grayscale();
+                $palette = new Grayscale();
+                break;
             default:
                 throw new NotSupportedException('Only RGB, CMYK and Grayscale colorspace are currently supported');
         }
+        try {
+            $profile = $vips->get('icc-profile-data');
+            $palette->useProfile(VipsProfile::fromRawData($profile));
+        } catch (Exception $e) {
+        }
+
+        return $palette;
     }
 
     /**

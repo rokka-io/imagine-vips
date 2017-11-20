@@ -23,3 +23,9 @@ SOFTWARE.
 This software uses code from the php imagine library. See
 https://github.com/avalanche123/Imagine for details.
 Copyright (c) 2004-2012 Bulat Shakirzyanov
+
+This software embeds Adobe ICC Profiles, see license at
+http://www.adobe.com/support/downloads/iccprofiles/icc_eula_mac_dist.html .
+
+This software also embeds ICC Profile from colormanagement.org. Please
+find information about their license at http://colormanagement.org/ .
