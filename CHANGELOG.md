@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 0.0.02 (unreleased)
+### 0.0.02 (2017-11-20)
   * Improve Profile/Palette/ICC support
   * Improve `generateImage` to make it faster, thanks to jcupitt
 
