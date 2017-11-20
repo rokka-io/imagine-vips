@@ -235,17 +235,13 @@ class Image extends AbstractImage
         $color = null !== $color ? $color : $palette->color('fff');
         list($red, $green, $blue, $alpha) = self::getColorArrayAlpha($color);
 
-        // Make a 1x1 pixel with the red channel and cast it to provided format.
-        $pixel = VipsImage::black(1, 1)->add($red)->cast(BandFormat::UCHAR);
+        // Make a 1x1 pixel with all the channels and cast it to provided format.
+        $pixel = VipsImage::black(1, 1)->add([$red, $green, $blue, $alpha])->cast(BandFormat::UCHAR);
+
         // Extend this 1x1 pixel to match the origin image dimensions.
         $vips = $pixel->embed(0, 0, $width, $height, ['extend' => Extend::COPY]);
         $vips = $vips->copy(['interpretation' => self::getInterpretation($color->getPalette())]);
         // Bandwise join the rest of the channels including the alpha channel.
-        $vips = $vips->bandjoin([
-            $green,
-            $blue,
-            $alpha,
-        ]);
 
         return $vips;
     }
