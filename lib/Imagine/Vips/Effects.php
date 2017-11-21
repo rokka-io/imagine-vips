@@ -52,7 +52,6 @@ class Effects implements EffectsInterface
         try {
             $vips = $this->image->getVips();
             $this->image->applyToLayers(function (\Jcupitt\Vips\Image $vips) {
-
                 if ($vips->hasAlpha()) {
                     $imageWithoutAlpha = $vips->extract_band(0, ['n' => $vips->bands - 1]);
                     $alpha = $vips->extract_band($vips->bands - 1, ['n' => 1]);
@@ -60,6 +59,7 @@ class Effects implements EffectsInterface
                 } else {
                     $newVips = $vips->invert();
                 }
+
                 return $newVips;
             });
         } catch (Exception $e) {
@@ -110,6 +110,7 @@ class Effects implements EffectsInterface
                 if ($oldinterpretation != $vips->interpretation) {
                     $vips = $vips->colourspace($oldinterpretation);
                 }
+
                 return $vips;
             });
         } catch (Exception $e) {
@@ -125,7 +126,9 @@ class Effects implements EffectsInterface
     public function blur($sigma = 1)
     {
         try {
-            $this->image->setVips($this->image->getVips()->gaussblur($sigma));
+            $this->image->applyToLayers(function (\Jcupitt\Vips\Image $vips) use ($sigma) {
+                return $vips->gaussblur($sigma);
+            });
         } catch (\Exception $e) {
             throw new RuntimeException('Failed to blur the image', $e->getCode(), $e);
         }
