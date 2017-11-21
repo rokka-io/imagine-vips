@@ -1,6 +1,9 @@
 # CHANGELOG
 
 ### 0.0.3 (unreleased)
+  * Add `convertToAlternatgive(ImagineInterface $imagine = null)` to convert the image to 
+     another imagine adapter. Uses Imagick or GD, if none set.
+  * Fix resize for some format changes
   * Fix grayscale for cmyk
   * Fix negative effect for images with transparency
   
