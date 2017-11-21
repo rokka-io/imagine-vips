@@ -36,7 +36,9 @@ class Effects implements EffectsInterface
     public function gamma($correction)
     {
         try {
-            $this->image->setVips($this->image->getVips()->gamma(['exponent' => $correction]));
+            $this->image->applyToLayers(function (\Jcupitt\Vips\Image $vips) use ($correction) {
+                return $vips->gamma(['exponent' => $correction]);
+            });
         } catch (Exception $e) {
             throw new RuntimeException('Failed to apply gamma correction to the image', $e->getCode(), $e);
         }
@@ -50,7 +52,6 @@ class Effects implements EffectsInterface
     public function negative()
     {
         try {
-            $vips = $this->image->getVips();
             $this->image->applyToLayers(function (\Jcupitt\Vips\Image $vips) {
                 if ($vips->hasAlpha()) {
                     $imageWithoutAlpha = $vips->extract_band(0, ['n' => $vips->bands - 1]);

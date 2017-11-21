@@ -190,7 +190,9 @@ class Image extends AbstractImage
     public function flipHorizontally()
     {
         try {
-            $this->vips = $this->vips->flip(Direction::HORIZONTAL);
+            $this->applyToLayers(function ($vips) {
+                return $vips->flip(Direction::HORIZONTAL);
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Horizontal Flip operation failed', $e->getCode(), $e);
         }
@@ -206,7 +208,9 @@ class Image extends AbstractImage
     public function flipVertically()
     {
         try {
-            $this->vips = $this->vips->flip(Direction::VERTICAL);
+            $this->applyToLayers(function ($vips) {
+                return $vips->flip(Direction::VERTICAL);
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Vertical Flip operation failed', $e->getCode(), $e);
         }
