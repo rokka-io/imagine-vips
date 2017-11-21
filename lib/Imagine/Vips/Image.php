@@ -265,13 +265,19 @@ class Image extends AbstractImage
     public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED)
     {
         try {
-            if ($this->vips->hasAlpha()) {
-                $this->vips = $this->vips->premultiply();
+            $vips = $this->vips;
+            if ($vips->hasAlpha()) {
+                $original_format = $vips->format;
+                $vips = $vips->premultiply();
             }
-            $this->vips = $this->vips->resize($size->getWidth() / $this->vips->width, ['vscale' => $size->getHeight() / $this->vips->height]);
-            if ($this->vips->hasAlpha()) {
-                $this->vips = $this->vips->unpremultiply();
+            $vips = $vips->resize($size->getWidth() / $vips->width, ['vscale' => $size->getHeight() / $vips->height]);
+            if ($vips->hasAlpha()) {
+                $vips = $vips->unpremultiply();
+                 if ($vips->format != $original_format) {
+                        $vips = $vips->cast($original_format);
+                 }
             }
+            $this->vips = $vips;
         } catch (VipsException $e) {
             throw new RuntimeException('Resize operation failed', $e->getCode(), $e);
         }
