@@ -40,7 +40,6 @@ Needs vips 8.6 or higher:
 
 Not implemented yet
  
- * Layers - Just the first layer is loaded (see below for more info)
  * Font
  * Drawer
  * Methods:
@@ -53,10 +52,28 @@ Most of them are not that important to us, so any contributions are welcome. Dra
   
 ### Layers
 
-Currently, only the first frame is loaded and available for image manipulation. 
+Layers work (not completely implemented yet and API may change). You can use it like the layer like described in the [Imagine docs](https://imagine.readthedocs.io/en/latest/usage/layers.html).
 
-There's a layers support in the works in  [layers-support](https://github.com/rokka-io/imagine-vips/tree/layers-support) branch. It loads an animated gif into the different layers. More work needs to be done. See also [this issue](https://github.com/rokka-io/imagine-vips/issues/1).
+The only thing you have to be aware of is that vips can't really write all of those layers at once (eg. for animated gifs).
 
+## Animated gifs
+
+If you want to save an animated gif, you have to do convert the imagine-vips object to a imagine-imagick object with `$image->convertToAlternative()` and then save on that.
+
+Example code:
+
+```php
+$im = new \Imagine\Vips\Imagine();
+$ori = $im->open("animated.gif");
+# make sure the images are "full" images
+$ori->layers()->coalesce();
+# do some operations on it
+$resized = $ori->resize(new Box(200,200));
+# convert to imagick, this is actually optional, you just are more aware what you are doing.
+$imagick = $resized->convertToAlternative();
+#save as animated gif
+$imagick->save("resized.gif" ,['animated' => true]);
+```
 
 ## Saving files
 
