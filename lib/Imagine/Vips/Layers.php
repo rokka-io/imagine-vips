@@ -183,6 +183,9 @@ class Layers extends AbstractLayers
         $this->resources[$offset] = $resource;
     }
 
+    /**
+     * @return \Jcupitt\Vips\Image[]
+     */
     public function getResources()
     {
         return $this->resources;
