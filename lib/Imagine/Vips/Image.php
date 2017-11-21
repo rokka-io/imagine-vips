@@ -343,7 +343,7 @@ class Image extends AbstractImage
             return $this->vips->webpsave($path, ['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
         }
         //fallback to imagemagick or gd
-        return $this->getFallbackImagineImage()->save($path, $options);
+        return $this->convertToAlternative()->save($path, $options);
     }
 
     /**
@@ -383,7 +383,7 @@ class Image extends AbstractImage
             $imagine = new \Imagine\GD\Imagine();
         }
         //fallback to imagemagick or gd
-        return $this->getFallbackImagineImage()->get($format, $options);
+        return $this->convertToAlternative()->get($format, $options);
     }
 
     /**
@@ -677,24 +677,27 @@ class Image extends AbstractImage
     }
 
     /**
-     * @return ImagineInterface
+     * @param ImagineInterface|null $imagine The alternative imagine interface to use, autodetects, if not set.
+     *
+     * @return ImageInterface
      */
-    protected function getFallbackImagineImage()
+    public function convertToAlternative(ImagineInterface $imagine = null)
     {
-        //FIXME: make this better configurable...
-        if (class_exists('Imagick')) {
-            $imagine = new \Imagine\Imagick\Imagine();
-        } else {
-            $imagine = new \Imagine\GD\Imagine();
+        if ($imagine = null) {
+            if (class_exists('Imagick')) {
+                $imagine = new \Imagine\Imagick\Imagine();
+            } else {
+                $imagine = new \Imagine\GD\Imagine();
+            }
         }
 
         return $imagine->load($this->getImageStringForLoad($this->vips));
     }
 
     /**
-     * @param $vips
+     * @param \Jcupitt\Vips\Image $vips
      *
-     * @return mixed|string
+     * @return string
      */
     protected function getDefaultProfileForInterpretation($vips)
     {
