@@ -178,6 +178,7 @@ class Image extends AbstractImage
         } catch (VipsException $e) {
             throw new RuntimeException('Crop operation failed', $e->getCode(), $e);
         }
+
         return $this;
     }
 
