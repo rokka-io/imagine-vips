@@ -852,17 +852,6 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param $res
-     * @return mixed
-     */
-    protected function getImageStringForLoad(\Jcupitt\Vips\Image $res)
-    {
-        //return $res->pngsave_buffer();
-        //file_put_contents("foo.tiff", $res->tiffsave_buffer(['properties' => true, 'compression' => ForeignTiffCompression::NONE]));
-        return $res->tiffsave_buffer(['compression' => ForeignTiffCompression::NONE]);
-    }
-
-    /**
      * Internal.
      *
      * Flatten the image.
