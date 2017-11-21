@@ -69,7 +69,12 @@ class Effects implements EffectsInterface
     public function grayscale()
     {
         try {
-            $this->image->setVips($this->image->getVips()->colourspace(Interpretation::B_W), true);
+            $vips = $this->image->getVips();
+            if ($vips->interpretation == Interpretation::CMYK) {
+                $vips = $vips->icc_import(['embedded' => true]);
+            }
+
+            $this->image->setVips($vips->colourspace(Interpretation::B_W), true);
         } catch (Exception $e) {
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);
         }
