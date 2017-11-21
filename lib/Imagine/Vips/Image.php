@@ -639,7 +639,7 @@ class Image extends AbstractImage
      */
     public function convertToAlternative(ImagineInterface $imagine = null)
     {
-        if ($imagine = null) {
+        if (null === $imagine) {
             if (class_exists('Imagick')) {
                 $imagine = new \Imagine\Imagick\Imagine();
             } else {
