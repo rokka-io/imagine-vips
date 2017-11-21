@@ -32,6 +32,7 @@ use Jcupitt\Vips\BandFormat;
 use Jcupitt\Vips\Direction;
 use Jcupitt\Vips\Exception as VipsException;
 use Jcupitt\Vips\Extend;
+use Jcupitt\Vips\ForeignTiffCompression;
 use Jcupitt\Vips\Image as VipsImage;
 use Jcupitt\Vips\Interpretation;
 
@@ -687,7 +688,7 @@ class Image extends AbstractImage
             $imagine = new \Imagine\GD\Imagine();
         }
 
-        return $imagine->load($this->vips->pngsave_buffer(['interlace' => false]));
+        return $imagine->load($this->getImageStringForLoad($this->vips));
     }
 
     /**
@@ -716,6 +717,15 @@ class Image extends AbstractImage
             //$this->vips->setImageFormat($options['format']);
         }
         // FIXME: layer support, merge them if $options['animated'] != true or $options['flatten'] == true
+    }
+
+    /**
+     * @param \Jcupitt\Vips\Image$res
+     * @return string
+     */
+    protected function getImageStringForLoad(\Jcupitt\Vips\Image $res)
+    {
+        return $res->tiffsave_buffer(['compression' => ForeignTiffCompression::NONE]);
     }
 
     /**
