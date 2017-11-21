@@ -274,9 +274,9 @@ class Image extends AbstractImage
             $vips = $vips->resize($size->getWidth() / $vips->width, ['vscale' => $size->getHeight() / $vips->height]);
             if ($vips->hasAlpha()) {
                 $vips = $vips->unpremultiply();
-                 if ($vips->format != $original_format) {
-                        $vips = $vips->cast($original_format);
-                 }
+                if ($vips->format != $original_format) {
+                    $vips = $vips->cast($original_format);
+                }
             }
             $this->vips = $vips;
         } catch (VipsException $e) {
@@ -632,6 +632,24 @@ class Image extends AbstractImage
         }
     }
 
+    /**
+     * @param ImagineInterface|null $imagine the alternative imagine interface to use, autodetects, if not set
+     *
+     * @return ImageInterface
+     */
+    public function convertToAlternative(ImagineInterface $imagine = null)
+    {
+        if ($imagine = null) {
+            if (class_exists('Imagick')) {
+                $imagine = new \Imagine\Imagick\Imagine();
+            } else {
+                $imagine = new \Imagine\GD\Imagine();
+            }
+        }
+
+        return $imagine->load($this->getImageStringForLoad($this->vips));
+    }
+
     protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
     {
         $defaultProfile = $this->getDefaultProfileForInterpretation($vips);
@@ -677,24 +695,6 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param ImagineInterface|null $imagine The alternative imagine interface to use, autodetects, if not set.
-     *
-     * @return ImageInterface
-     */
-    public function convertToAlternative(ImagineInterface $imagine = null)
-    {
-        if ($imagine = null) {
-            if (class_exists('Imagick')) {
-                $imagine = new \Imagine\Imagick\Imagine();
-            } else {
-                $imagine = new \Imagine\GD\Imagine();
-            }
-        }
-
-        return $imagine->load($this->getImageStringForLoad($this->vips));
-    }
-
-    /**
      * @param \Jcupitt\Vips\Image $vips
      *
      * @return string
@@ -710,6 +710,16 @@ class Image extends AbstractImage
     }
 
     /**
+     * @param \Jcupitt\Vips\Image$res
+     *
+     * @return string
+     */
+    protected function getImageStringForLoad(\Jcupitt\Vips\Image $res)
+    {
+        return $res->tiffsave_buffer(['compression' => ForeignTiffCompression::NONE]);
+    }
+
+    /**
      * @param array  $options
      * @param string $path
      */
@@ -720,15 +730,6 @@ class Image extends AbstractImage
             //$this->vips->setImageFormat($options['format']);
         }
         // FIXME: layer support, merge them if $options['animated'] != true or $options['flatten'] == true
-    }
-
-    /**
-     * @param \Jcupitt\Vips\Image$res
-     * @return string
-     */
-    protected function getImageStringForLoad(\Jcupitt\Vips\Image $res)
-    {
-        return $res->tiffsave_buffer(['compression' => ForeignTiffCompression::NONE]);
     }
 
     /**
