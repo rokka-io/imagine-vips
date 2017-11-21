@@ -172,17 +172,12 @@ class Image extends AbstractImage
             }
         }
         try {
-            /*
-             * FIXME: Layers support
-             * if ($this->layers()->count() > 1) {
-             *   // Crop each layer separately
-             * } else {
-             */
-            $this->vips = $this->vips->crop($start->getX(), $start->getY(), $size->getWidth(), $size->getHeight());
+            $this->applyToLayers(function ($vips) use ($size, $start) {
+                return $vips->crop($start->getX(), $start->getY(), $size->getWidth(), $size->getHeight());
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Crop operation failed', $e->getCode(), $e);
         }
-
         return $this;
     }
 
