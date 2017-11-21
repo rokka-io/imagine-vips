@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 0.0.3 (unreleased)
+### 0.0.3 (2017-11-21)
   * Fix conversion from cmyk to rgb, when no profile is supplied
   * Add `convertToAlternative(ImagineInterface $imagine = null)` to convert the image to 
      another imagine adapter. Uses Imagick or GD, if none set.
