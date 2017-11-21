@@ -106,8 +106,12 @@ class Image extends AbstractImage
      *
      * @return self
      */
-    public function setVips($vips, $updatePalette = false)
+    public function setVips(\Jcupitt\Vips\Image $vips, $updatePalette = false)
     {
+        if ($this->vips->interpretation != $vips->interpretation) {
+            $updatePalette = true;
+        }
+
         $this->vips = $vips;
         if ($updatePalette) {
             $this->updatePalette();
