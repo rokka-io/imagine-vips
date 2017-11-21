@@ -34,6 +34,7 @@ use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\BandFormat;
 use Jcupitt\Vips\BlendMode;
 use Jcupitt\Vips\Direction;
+use Jcupitt\Vips\Exception;
 use Jcupitt\Vips\Exception as VipsException;
 use Jcupitt\Vips\Extend;
 use Jcupitt\Vips\ForeignTiffCompression;
@@ -748,6 +749,12 @@ class Image extends AbstractImage
             $newLayer = $imagine->load($this->getImageStringForLoad($res));
             $image->layers()->add($newLayer);
             ++$i;
+        }
+        try {
+            // if there's a gif-delay option, set this
+            $delay = $this->vips->get('gif-delay');
+            $image->layers()->animate('gif', $delay * 10, 0);
+        } catch (Exception $e) {
         }
 
         return $image;
