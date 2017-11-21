@@ -749,9 +749,11 @@ class Image extends AbstractImage
         try {
             // if there's a gif-delay option, set this
             $delay = $this->vips->get('gif-delay');
-            $image->layers()->animate('gif', $delay * 10, 0);
+            $loop = $this->vips->get('gif-loop');
+            $image->layers()->animate('gif', $delay * 10, $loop);
         } catch (Exception $e) {
         }
+
 
         return $image;
     }
