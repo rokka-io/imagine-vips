@@ -52,14 +52,17 @@ class Effects implements EffectsInterface
     {
         try {
             $vips = $this->image->getVips();
-            if ($vips->hasAlpha()) {
-                $imageWithoutAlpha = $vips->extract_band(0, ['n' => $vips->bands - 1]);
-                $alpha = $vips->extract_band($vips->bands - 1, ['n' => 1]);
-                $newVips = $imageWithoutAlpha->invert()->bandjoin($alpha);
-            } else {
-                $newVips = $vips->invert();
-            }
-            $this->image->setVips($newVips);
+            $this->image->applyToLayers(function (\Jcupitt\Vips\Image $vips) {
+
+                if ($vips->hasAlpha()) {
+                    $imageWithoutAlpha = $vips->extract_band(0, ['n' => $vips->bands - 1]);
+                    $alpha = $vips->extract_band($vips->bands - 1, ['n' => 1]);
+                    $newVips = $imageWithoutAlpha->invert()->bandjoin($alpha);
+                } else {
+                    $newVips = $vips->invert();
+                }
+                return $newVips;
+            });
         } catch (Exception $e) {
             throw new RuntimeException('Failed to negate the image', $e->getCode(), $e);
         }
@@ -110,7 +113,14 @@ class Effects implements EffectsInterface
     public function sharpen()
     {
         try {
-            $this->image->setVips($this->image->getVips()->sharpen());
+            $this->image->applyToLayers(function (\Jcupitt\Vips\Image $vips) {
+                $oldinterpretation = $vips->interpretation;
+                $vips = $vips->sharpen();
+                if ($oldinterpretation != $vips->interpretation) {
+                    $vips = $vips->colourspace($oldinterpretation);
+                }
+                return $vips;
+            });
         } catch (Exception $e) {
             throw new RuntimeException('Failed to sharpen the image', $e->getCode(), $e);
         }
