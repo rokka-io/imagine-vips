@@ -639,7 +639,6 @@ class Image extends AbstractImage
             $this->vips = $this->vips->bandjoin([255]);
         }
         $new = self::generateImage($box, $color);
-        //$this->vips = $new;
         $this->vips = $new->insert($this->vips, $start->getX(), $start->getY());
 
         return $this;
