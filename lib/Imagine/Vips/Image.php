@@ -102,7 +102,7 @@ class Image extends AbstractImage
 
     /**
      * @param $vips
-     * @param bool $updatePalette  In case the palette should changed and should be updated
+     * @param bool $updatePalette In case the palette should changed and should be updated
      *
      * @return self
      */
@@ -112,6 +112,7 @@ class Image extends AbstractImage
         if ($updatePalette) {
             $this->updatePalette();
         }
+
         return $this;
     }
 
@@ -250,6 +251,7 @@ class Image extends AbstractImage
         // Extend this 1x1 pixel to match the origin image dimensions.
         $vips = $pixel->embed(0, 0, $width, $height, ['extend' => Extend::COPY]);
         $vips = $vips->copy(['interpretation' => self::getInterpretation($color->getPalette())]);
+
         return $vips;
     }
 
@@ -564,7 +566,8 @@ class Image extends AbstractImage
         try {
             //try to remove icc-profile-data, not sure that's always correct, for srgb and 'bw' it seems to.
             $vipsNew->remove('icc-profile-data');
-        } catch (VipsException $e) {}
+        } catch (VipsException $e) {
+        }
 
         $profile = $palette->profile();
         // convert to a ICC profile, if it's not the default one

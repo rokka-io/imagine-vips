@@ -47,7 +47,15 @@ class Effects implements EffectsInterface
     public function negative()
     {
         try {
-            $this->image->setVips($this->image->getVips()->invert());
+            $vips = $this->image->getVips();
+            if ($vips->hasAlpha()) {
+                $imageWithoutAlpha = $vips->extract_band(0, ['n' => $vips->bands - 1]);
+                $alpha = $vips->extract_band($vips->bands - 1, ['n' => 1]);
+                $newVips = $imageWithoutAlpha->invert()->bandjoin($alpha);
+            } else {
+                $newVips = $vips->invert();
+            }
+            $this->image->setVips($newVips);
         } catch (Exception $e) {
             throw new RuntimeException('Failed to negate the image', $e->getCode(), $e);
         }
@@ -61,7 +69,7 @@ class Effects implements EffectsInterface
     public function grayscale()
     {
         try {
-            $this->image->setVips($this->image->getVips()->colourspace(Interpretation::B_W));
+            $this->image->setVips($this->image->getVips()->colourspace(Interpretation::B_W), true);
         } catch (Exception $e) {
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);
         }
