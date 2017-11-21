@@ -43,6 +43,8 @@ class Image extends AbstractImage
 {
     const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB_IEC61966-2-1_black_scaled.icc';
     const ICC_DEFAULT_PROFILE_BW = 'ISOcoated_v2_grey1c_bas.ICC';
+    const ICC_DEFAULT_PROFILE_CMYK = 'USWebUncoated.icc';
+
     /**
      * @var \Jcupitt\Vips\Image
      */
@@ -65,6 +67,7 @@ class Image extends AbstractImage
 
     private static $interpretationIccProfileMapping = [
         Interpretation::B_W => self::ICC_DEFAULT_PROFILE_BW,
+        Interpretation::CMYK => self::ICC_DEFAULT_PROFILE_CMYK,
     ];
 
     /**
@@ -570,7 +573,8 @@ class Image extends AbstractImage
         try {
             $vipsNew = $vipsNew->icc_import(['embedded' => true]);
         } catch (VipsException $e) {
-            //just move on, if there's no icc data
+            // try with the supplied "default" profile, if no embedded was found and it failed
+            $vipsNew = $this->applyProfile($palette->profile(), $vipsNew);
         }
         $vipsNew = $vipsNew->colourspace($newColorspace);
 

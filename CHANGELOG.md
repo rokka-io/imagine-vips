@@ -1,7 +1,8 @@
 # CHANGELOG
 
 ### 0.0.3 (unreleased)
-  * Add `convertToAlternatgive(ImagineInterface $imagine = null)` to convert the image to 
+  * Fix conversion from cmyk to rgb, when no profile is supplied
+  * Add `convertToAlternative(ImagineInterface $imagine = null)` to convert the image to 
      another imagine adapter. Uses Imagick or GD, if none set.
   * Fix resize for some format changes
   * Fix grayscale for cmyk
