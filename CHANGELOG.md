@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.0.4 (unreleased)
+
+  * Fix `Image::paste` to make it faster, when you have many pastes.
+
 ### 0.0.3 (2017-11-21)
   * Fix conversion from cmyk to rgb, when no profile is supplied
   * Add `convertToAlternative(ImagineInterface $imagine = null)` to convert the image to 

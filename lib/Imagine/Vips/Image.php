@@ -52,7 +52,7 @@ class Image extends AbstractImage
     /**
      * @var Layers
      */
-    private $layers;
+    protected $layers;
     /**
      * @var PaletteInterface
      */
@@ -240,7 +240,7 @@ class Image extends AbstractImage
         $image = $image->extendImage($this->getSize(), $start)->getVips();
 
         //needs upcoming vips 8.6
-        $this->vips = $this->vips->composite([$this->vips, $image], [2]);
+        $this->vips = $this->vips->composite([$this->vips, $image], [2])->copyMemory();
 
         return $this;
     }
