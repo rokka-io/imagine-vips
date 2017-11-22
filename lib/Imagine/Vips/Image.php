@@ -762,7 +762,6 @@ class Image extends AbstractImage
         } catch (Exception $e) {
         }
 
-
         return $image;
     }
 
