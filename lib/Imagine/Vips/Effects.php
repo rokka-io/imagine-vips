@@ -70,7 +70,7 @@ class Effects implements EffectsInterface
     {
         try {
             $vips = $this->image->getVips();
-            if ($vips->interpretation == Interpretation::CMYK) {
+            if (Interpretation::CMYK == $vips->interpretation) {
                 $vips = $vips->icc_import(['embedded' => true]);
             }
 

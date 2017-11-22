@@ -314,7 +314,7 @@ class Image extends AbstractImage
                 default:
                     if (!$this->vips->hasAlpha()) {
                         //FIXME, alpha channel with Grey16 isn't doing well on rotation. there's only alpha in the end
-                        if ($this->vips->interpretation !== Interpretation::GREY16) {
+                        if (Interpretation::GREY16 !== $this->vips->interpretation) {
                             $this->vips = $this->vips->bandjoin(255);
                         }
                     }
@@ -338,11 +338,11 @@ class Image extends AbstractImage
         $options = $this->applyImageOptions($this->vips, $options, $path);
         $this->prepareOutput($options);
         $format = $options['format'];
-        if ($format == 'jpg' || $format == 'jpeg') {
+        if ('jpg' == $format || 'jpeg' == $format) {
             return $this->vips->jpegsave($path, ['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
-        } elseif ($format == 'png') {
+        } elseif ('png' == $format) {
             return $this->vips->pngsave($path, ['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
-        } elseif ($format == 'webp') {
+        } elseif ('webp' == $format) {
             return $this->vips->webpsave($path, ['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
         }
         //fallback to imagemagick or gd
@@ -371,11 +371,11 @@ class Image extends AbstractImage
         $this->prepareOutput($options);
         $options = $this->applyImageOptions($this->vips, $options);
 
-        if ($format == 'jpg' || $format == 'jpeg') {
+        if ('jpg' == $format || 'jpeg' == $format) {
             return $this->vips->jpegsave_buffer(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
-        } elseif ($format == 'png') {
+        } elseif ('png' == $format) {
             return $this->vips->pngsave_buffer(['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
-        } elseif ($format == 'webp') {
+        } elseif ('webp' == $format) {
             return $this->vips->webpsave_buffer(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
         }
 
@@ -785,7 +785,7 @@ class Image extends AbstractImage
             $options['webp_lossless'] = false;
         }
 
-        if ($format === 'png') {
+        if ('png' === $format) {
             if (!isset($options['png_compression_level'])) {
                 $options['png_compression_level'] = 7;
             }

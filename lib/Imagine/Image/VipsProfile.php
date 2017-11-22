@@ -45,7 +45,7 @@ class VipsProfile implements ProfileInterface
      */
     public function path()
     {
-        if ($this->path == null) {
+        if (null == $this->path) {
             self::getTmpFileFromRawData($this->data, $this->name);
         }
 
