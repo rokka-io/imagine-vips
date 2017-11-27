@@ -67,6 +67,7 @@ class Image extends AbstractImage
 
     private static $interpretationIccProfileMapping = [
         Interpretation::B_W => self::ICC_DEFAULT_PROFILE_BW,
+        Interpretation::GREY16 => self::ICC_DEFAULT_PROFILE_BW,
         Interpretation::CMYK => self::ICC_DEFAULT_PROFILE_CMYK,
     ];
 

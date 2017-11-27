@@ -2,6 +2,7 @@
 
 ### 0.0.4 (unreleased)
 
+  * Fix colorprofile for GREY16 pictures
   * Fix `Image::paste` to make it faster, when you have many pastes.
 
 ### 0.0.3 (2017-11-21)
