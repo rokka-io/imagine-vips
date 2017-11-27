@@ -9,7 +9,6 @@
 
 namespace Imagine\Vips;
 
-use Core\Operation\Grayscale;
 use Imagine\Exception\InvalidArgumentException;
 use Imagine\Exception\OutOfBoundsException;
 use Imagine\Exception\RuntimeException;
@@ -21,6 +20,7 @@ use Imagine\Image\Fill\Gradient\Horizontal;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\ImagineInterface;
 use Imagine\Image\Metadata\MetadataBag;
+use Imagine\Image\Palette\CMYK;
 use Imagine\Image\Palette\Color\ColorInterface;
 use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
@@ -85,6 +85,14 @@ class Image extends AbstractImage
         $this->metadata = $metadata;
         $this->palette = $palette;
         $this->layers = new Layers($this);
+        if ($palette instanceof  CMYK) {
+            //convert to RGB when it's CMYK to make life much easier later on.
+            // If someone really needs CMYK support, there's lots of stuff failing, which needs to be fixed
+            // But  it could be added.
+            $new = $this->usePalette(new RGB());
+            $this->vips = $new->getVips();
+            $this->palette = $new->palette();
+        }
     }
 
     /**
@@ -252,11 +260,17 @@ class Image extends AbstractImage
         $height = $size->getHeight();
         $palette = null !== $color ? $color->getPalette() : new RGB();
         $color = null !== $color ? $color : $palette->color('fff');
-        list($red, $green, $blue, $alpha) = self::getColorArrayAlpha($color);
+        if ($palette instanceof RGB) {
+            list($red, $green, $blue, $alpha) = self::getColorArrayAlpha($color);
 
-        // Make a 1x1 pixel with all the channels and cast it to provided format.
-        $pixel = VipsImage::black(1, 1)->add([$red, $green, $blue, $alpha])->cast(BandFormat::UCHAR);
+            // Make a 1x1 pixel with all the channels and cast it to provided format.
+            $pixel = VipsImage::black(1, 1)->add([$red, $green, $blue, $alpha])->cast(BandFormat::UCHAR);
+        } elseif ($palette instanceof \Imagine\Image\Palette\Grayscale) {
+            list($gray, $alpha) = self::getColorArrayAlpha($color, 2);
 
+            // Make a 1x1 pixel with all the channels and cast it to provided format.
+            $pixel = VipsImage::black(1, 1)->add([$gray, $alpha])->cast(BandFormat::UCHAR);
+        }
         // Extend this 1x1 pixel to match the origin image dimensions.
         $vips = $pixel->embed(0, 0, $width, $height, ['extend' => Extend::COPY]);
         $vips = $vips->copy(['interpretation' => self::getInterpretation($color->getPalette())]);
@@ -320,7 +334,7 @@ class Image extends AbstractImage
                         }
                     }
                     //needs upcoming vips 8.6
-                    $this->vips = $this->vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color)]);
+                    $this->vips = $this->vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color, $this->vips->bands)]);
             }
         } catch (VipsException $e) {
             throw new RuntimeException('Rotate operation failed. '.$e->getMessage(), $e->getCode(), $e);
@@ -337,17 +351,19 @@ class Image extends AbstractImage
     public function save($path = null, array $options = [])
     {
         $options = $this->applyImageOptions($this->vips, $options, $path);
-        $this->prepareOutput($options);
+        $image = $this->prepareOutput($options);
+        $vips = $image->getVips();
+
         $format = $options['format'];
         if ('jpg' == $format || 'jpeg' == $format) {
-            return $this->vips->jpegsave($path, ['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
+            return $vips->jpegsave($path, ['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
         } elseif ('png' == $format) {
-            return $this->vips->pngsave($path, ['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
+            return $vips->pngsave($path, ['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
         } elseif ('webp' == $format) {
-            return $this->vips->webpsave($path, ['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
+            return $vips->webpsave($path, ['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
         }
         //fallback to imagemagick or gd
-        return $this->convertToAlternative()->save($path, $options);
+        return $image->convertToAlternative()->save($path, $options);
     }
 
     /**
@@ -369,15 +385,16 @@ class Image extends AbstractImage
     public function get($format, array $options = [])
     {
         $options['format'] = $format;
-        $this->prepareOutput($options);
-        $options = $this->applyImageOptions($this->vips, $options);
+        $image = $this->prepareOutput($options);
+        $vips = $image->getVips();
+        $options = $this->applyImageOptions($vips, $options);
 
         if ('jpg' == $format || 'jpeg' == $format) {
-            return $this->vips->jpegsave_buffer(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
+            return $vips->jpegsave_buffer(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
         } elseif ('png' == $format) {
-            return $this->vips->pngsave_buffer(['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
+            return $vips->pngsave_buffer(['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
         } elseif ('webp' == $format) {
-            return $this->vips->webpsave_buffer(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
+            return $vips->webpsave_buffer(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
         }
 
         //FIXME: and maybe make that more customizable
@@ -387,7 +404,7 @@ class Image extends AbstractImage
             $imagine = new \Imagine\GD\Imagine();
         }
         //fallback to imagemagick or gd
-        return $this->convertToAlternative()->get($format, $options);
+        return $image->convertToAlternative()->get($format, $options);
     }
 
     /**
@@ -617,7 +634,7 @@ class Image extends AbstractImage
         return $new;
     }
 
-    public static function getColorArrayAlpha(ColorInterface $color): array
+    public static function getColorArrayAlpha(ColorInterface $color, $bands = 4): array
     {
         if ($color->getPalette() instanceof RGB) {
             return [
@@ -627,7 +644,14 @@ class Image extends AbstractImage
                 $color->getAlpha() / 100 * 255,
             ];
         }
-        if ($color->getPalette() instanceof Grayscale) {
+        if ($color->getPalette() instanceof \Imagine\Image\Palette\Grayscale) {
+            if ($bands <= 2) {
+                return [
+                    $color->getValue(ColorInterface::COLOR_GRAY),
+                    $color->getAlpha() / 100 * 255,
+                ];
+            }
+
             return [
                 $color->getValue(ColorInterface::COLOR_GRAY),
                 $color->getValue(ColorInterface::COLOR_GRAY),
@@ -671,7 +695,11 @@ class Image extends AbstractImage
 
     protected function extendImage(BoxInterface $box, PointInterface $start)
     {
-        $color = new \Imagine\Image\Palette\Color\RGB(new RGB(), [255, 255, 255], 0);
+        if ($this->vips->bands > 2) {
+            $color = new \Imagine\Image\Palette\Color\RGB(new RGB(), [255, 255, 255], 0);
+        } else {
+            $color = new \Imagine\Image\Palette\Color\Gray(new \Imagine\Image\Palette\Grayscale(), [255], 0);
+        }
         if (!$this->vips->hasAlpha()) {
             $this->vips = $this->vips->bandjoin([255]);
         }
@@ -691,7 +719,7 @@ class Image extends AbstractImage
         if ($palette instanceof RGB) {
             return Interpretation::SRGB;
         }
-        if ($palette instanceof Grayscale) {
+        if ($palette instanceof \Imagine\Image\Palette\Grayscale) {
             return Interpretation::B_W;
         }
         if ($palette instanceof CMYK) {
@@ -728,8 +756,14 @@ class Image extends AbstractImage
      * @param array  $options
      * @param string $path
      */
-    private function prepareOutput(array $options, $path = null)
+    private function prepareOutput(array $options, $path = null): ImageInterface
     {
+        //convert to RGB if it's cmyk
+        if ($this->palette() instanceof CMYK) {
+            return $this->usePalette(new RGB());
+        }
+
+        return $this;
         if (isset($options['format'])) {
             // $this->vips->format = $options['format'];
             //$this->vips->setImageFormat($options['format']);

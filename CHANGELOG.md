@@ -2,6 +2,9 @@
 
 ### 0.0.4 (unreleased)
 
+  * Fix some operations on grayscale images
+  * Convert CMYK to sRGB early on
+  * Convert CMYK to sRGB before save, in case we still have a CMYK picture
   * Fix colorprofile for GREY16 pictures
   * Fix `Image::paste` to make it faster, when you have many pastes.
 
