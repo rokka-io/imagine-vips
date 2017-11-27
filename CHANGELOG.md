@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 0.0.4 (unreleased)
+### 0.0.4 (2017-11-27)
 
   * Fix some operations on grayscale images
   * Convert CMYK to sRGB early on
