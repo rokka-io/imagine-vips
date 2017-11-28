@@ -779,7 +779,10 @@ class Image extends AbstractImage
     private function flatten()
     {
         try {
-            return  $this->vips->flatten();
+            if ($this->vips->hasAlpha()) {
+                return $this->vips->flatten();
+            }
+            return $this->vips;
         } catch (VipsException $e) {
             throw new RuntimeException('Flatten operation failed', $e->getCode(), $e);
         }
