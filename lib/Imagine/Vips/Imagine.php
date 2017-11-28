@@ -32,12 +32,41 @@ use Jcupitt\Vips\Interpretation;
 class Imagine extends AbstractImagine
 {
     /**
+     * Initialize imagine library.
+     *
+     * You can also apply global vips settings
+     *
+     * Key -> calls the following php function
+     *
+     * max_mem -> vips_cache_set_max_mem
+     * max_ops -> vips_cache_set_max
+     * max_files -> vips_cache_set_max_files
+     * concurrency -> vips_concurrency_set
+     *
+     * @param array $config
+     *
      * @throws RuntimeException
      */
-    public function __construct()
+    public function __construct(array $config = [])
     {
         if (!extension_loaded('vips')) {
             throw new RuntimeException('Vips not installed');
+        }
+        foreach ($config as $key => $value) {
+            switch ($key) {
+                case 'max_mem':
+                    vips_cache_set_max_mem($value);
+                    break;
+                case 'max_ops':
+                    vips_cache_set_max($value);
+                    break;
+                case 'max_files':
+                    vips_cache_set_max_files($value);
+                    break;
+                case 'concurrency':
+                    vips_concurrency_set($value);
+                    break;
+            }
         }
     }
 

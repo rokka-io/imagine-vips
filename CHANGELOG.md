@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.0.5 (unreleased)
+
+  * Add constructor config array to be able to set `vips_cache_set_max_mem` et al
+
 ### 0.0.4 (2017-11-27)
 
   * Fix some operations on grayscale images
