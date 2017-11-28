@@ -4,7 +4,7 @@ This package provides a [libvips](https://jcupitt.github.io/libvips/) integratio
 
 The as of mid november 2017 not yet released version 8.6 of libvips is recommended for some functions. But 8.5 works for most too.
  
-You also need the [php-vips-ext](https://github.com/jcupitt/php-vips-ext) extension (you need to install that) and the [php-vips](https://github.com/jcupitt/php-vips) classes (automatically installed by composer)
+You also need the [php-vips-ext](https://github.com/jcupitt/php-vips-ext) extension version 1.0.8 or higher (you need to install that) and the [php-vips](https://github.com/jcupitt/php-vips) classes (automatically installed by composer)
 
 The most (to us at least) important stuff is implemented. There may be edge cases, which are not covered yet, but those will be hopefully fixed soon. Report them, if you encounter one.
 
@@ -31,10 +31,10 @@ $imagine->open('/path/to/large_image.jpg')
  
 ## Missing stuff
 
-Needs upcoming 8.6:
+Needs upcoming vips 8.6:
 
 * paste
-* rotate 
+* rotate by angles other than multipliers of 90
 
 Not implemented yet
  
@@ -42,10 +42,10 @@ Not implemented yet
  * Font
  * Drawer
  * Methods:
-  * fill
-  * histogram
+   * fill
+   * histogram
  * Filters:
-  * colorize
+   * colorize
 
 Most of them are not that important to us, so any contributions are welcome. Drawer for example may be a low hanging fruit, if you want to get into it.
   

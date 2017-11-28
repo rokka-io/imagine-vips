@@ -248,7 +248,10 @@ class Image extends AbstractImage
         }
         $image = $image->extendImage($this->getSize(), $start)->getVips();
 
-        //needs upcoming vips 8.6
+        if (version_compare(vips_version(), '8.6', '<')) {
+            throw new RuntimeException('The paste method needs at least vips 8.6');
+        }
+
         $this->vips = $this->vips->composite([$this->vips, $image], [2])->copyMemory();
 
         return $this;
@@ -316,14 +319,18 @@ class Image extends AbstractImage
             switch ($angle) {
                 case 0:
                 case 360:
+                case -360:
                     break;
                 case 90:
+                case -270:
                     $this->vips = $this->vips->rot90();
                     break;
                 case 180:
+                case -180:
                     $this->vips = $this->vips->rot180();
                     break;
                 case 270:
+                case -90:
                     $this->vips = $this->vips->rot270();
                     break;
                 default:
@@ -333,7 +340,9 @@ class Image extends AbstractImage
                             $this->vips = $this->vips->bandjoin(255);
                         }
                     }
-                    //needs upcoming vips 8.6
+                    if (version_compare(vips_version(), '8.6', '<')) {
+                        throw new RuntimeException('The rotate method for angles != 90, 180, 270 needs at least vips 8.6');
+                    }
                     $this->vips = $this->vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color, $this->vips->bands)]);
             }
         } catch (VipsException $e) {
@@ -782,6 +791,7 @@ class Image extends AbstractImage
             if ($this->vips->hasAlpha()) {
                 return $this->vips->flatten();
             }
+
             return $this->vips;
         } catch (VipsException $e) {
             throw new RuntimeException('Flatten operation failed', $e->getCode(), $e);
