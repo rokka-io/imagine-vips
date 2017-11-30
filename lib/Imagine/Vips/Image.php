@@ -282,7 +282,12 @@ class Image extends AbstractImage
     }
 
     /**
-     * {@inheritdoc}
+     * Resizes current image and returns self.
+     *
+     * @param BoxInterface $size
+     * @param mixed        $filter Not supported yet
+     *
+     * @return self
      */
     public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED)
     {
