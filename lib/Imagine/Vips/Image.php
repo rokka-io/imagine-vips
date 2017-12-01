@@ -29,6 +29,7 @@ use Imagine\Image\PointInterface;
 use Imagine\Image\ProfileInterface;
 use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\BandFormat;
+use Jcupitt\Vips\BlendMode;
 use Jcupitt\Vips\Direction;
 use Jcupitt\Vips\Exception as VipsException;
 use Jcupitt\Vips\Extend;
@@ -253,8 +254,16 @@ class Image extends AbstractImage
         if (version_compare(vips_version(), '8.6', '<')) {
             throw new RuntimeException('The paste method needs at least vips 8.6');
         }
+        // this class is new for vips 8.6 and in the dev-master branch of vips-ext
+        // once we can require that via composer.json, we can remove this if and the else clause
+        if (class_exists('\Jcupitt\Vips\BlendMode')) {
+            // for php-vips > 1.0.2
+            $this->vips = $this->vips->composite([$image], [BlendMode::OVER])->copyMemory();
+        } else {
+            // for php-vips <= 1.0.2
+            $this->vips = $this->vips->composite([$this->vips, $image], 2)->copyMemory();
+        }
 
-        $this->vips = $this->vips->composite([$this->vips, $image], [2])->copyMemory();
         return $this;
     }
 
