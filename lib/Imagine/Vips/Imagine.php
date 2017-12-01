@@ -131,7 +131,7 @@ class Imagine extends AbstractImagine
      */
     public function font($file, $size, ColorInterface $color)
     {
-        return new Font(null, $file, $size, $color);
+        return new Font($file, $size, $color);
     }
 
     /**

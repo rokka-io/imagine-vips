@@ -117,9 +117,4 @@ class Effects implements EffectsInterface
 
         return $this;
     }
-
-    public function getVips()
-    {
-        return $this->vips;
-    }
 }

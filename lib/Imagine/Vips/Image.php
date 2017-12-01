@@ -46,7 +46,7 @@ class Image extends AbstractImage
     const ICC_DEFAULT_PROFILE_CMYK = 'USWebUncoated.icc';
 
     /**
-     * @var \Jcupitt\Vips\Image
+     * @var VipsImage
      */
     protected $vips;
     /**
@@ -74,7 +74,7 @@ class Image extends AbstractImage
     /**
      * Constructs a new Image instance.
      *
-     * @param \Jcupitt\Vips\Image         vips
+     * @param VipsImage        $vips
      * @param PaletteInterface $palette
      * @param MetadataBag      $metadata
      */
@@ -106,7 +106,7 @@ class Image extends AbstractImage
     /**
      * Returns the underlying \Jcupitt\Vips\Image instance.
      *
-     * @return \Jcupitt\Vips\Image
+     * @return VipsImage
      */
     public function getVips()
     {
@@ -114,12 +114,12 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param $vips
-     * @param bool $updatePalette In case the palette should changed and should be updated
+     * @param VipsImage $vips
+     * @param bool      $updatePalette In case the palette should changed and should be updated
      *
      * @return self
      */
-    public function setVips(\Jcupitt\Vips\Image $vips, $updatePalette = false)
+    public function setVips(VipsImage $vips, $updatePalette = false)
     {
         if ($this->vips->interpretation != $vips->interpretation) {
             $updatePalette = true;
@@ -232,7 +232,9 @@ class Image extends AbstractImage
      */
     public function paste(ImageInterface $image, PointInterface $start)
     {
-        /** @var VipsImage $inVips */
+        if (!$image instanceof self) {
+            throw new RuntimeException("Paste image needs to be a Imagine\Vips\Image object");
+        }
         $inVips = $image->getVips();
 
         if (!$inVips->hasAlpha()) {
@@ -253,7 +255,6 @@ class Image extends AbstractImage
         }
 
         $this->vips = $this->vips->composite([$this->vips, $image], [2])->copyMemory();
-
         return $this;
     }
 
@@ -273,6 +274,8 @@ class Image extends AbstractImage
 
             // Make a 1x1 pixel with all the channels and cast it to provided format.
             $pixel = VipsImage::black(1, 1)->add([$gray, $alpha])->cast(BandFormat::UCHAR);
+        } else {
+            throw new RuntimeException('Only RGB and Grayscale are supported for generating an image currently.');
         }
         // Extend this 1x1 pixel to match the origin image dimensions.
         $vips = $pixel->embed(0, 0, $width, $height, ['extend' => Extend::COPY]);
@@ -293,8 +296,8 @@ class Image extends AbstractImage
     {
         try {
             $vips = $this->vips;
+            $original_format = $vips->format;
             if ($vips->hasAlpha()) {
-                $original_format = $vips->format;
                 $vips = $vips->premultiply();
             }
             $vips = $vips->resize($size->getWidth() / $vips->width, ['vscale' => $size->getHeight() / $vips->height]);
@@ -365,16 +368,23 @@ class Image extends AbstractImage
     public function save($path = null, array $options = [])
     {
         $options = $this->applyImageOptions($this->vips, $options, $path);
+        /** @var Image $image */
         $image = $this->prepareOutput($options);
         $vips = $image->getVips();
 
         $format = $options['format'];
         if ('jpg' == $format || 'jpeg' == $format) {
-            return $vips->jpegsave($path, ['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
+            $vips->jpegsave($path, ['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
+
+            return $this;
         } elseif ('png' == $format) {
-            return $vips->pngsave($path, ['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
+            $vips->pngsave($path, ['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
+
+            return $this;
         } elseif ('webp' == $format) {
-            return $vips->webpsave($path, ['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
+            $vips->webpsave($path, ['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
+
+            return $this;
         }
         //fallback to imagemagick or gd
         return $image->convertToAlternative()->save($path, $options);
@@ -399,7 +409,9 @@ class Image extends AbstractImage
     public function get($format, array $options = [])
     {
         $options['format'] = $format;
+        /** @var Image $image */
         $image = $this->prepareOutput($options);
+
         $vips = $image->getVips();
         $options = $this->applyImageOptions($vips, $options);
 
@@ -415,7 +427,7 @@ class Image extends AbstractImage
         if (class_exists('Imagick')) {
             $imagine = new \Imagine\Imagick\Imagine();
         } else {
-            $imagine = new \Imagine\GD\Imagine();
+            $imagine = new \Imagine\Gd\Imagine();
         }
         //fallback to imagemagick or gd
         return $image->convertToAlternative()->get($format, $options);
@@ -437,7 +449,6 @@ class Image extends AbstractImage
     {
         //FIXME: implement in vips
         throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
-        return new Drawer($this->vips);
     }
 
     /**
@@ -496,7 +507,7 @@ class Image extends AbstractImage
      */
     public function mask()
     {
-        /** @var \Jcupitt\Vips\Image $lch */
+        /** @var VipsImage $lch */
         $lch = $this->vips->colourspace(Interpretation::LCH);
         $multiply = [1, 0, 1];
         if ($lch->hasAlpha()) {
@@ -686,7 +697,7 @@ class Image extends AbstractImage
             if (class_exists('Imagick')) {
                 $imagine = new \Imagine\Imagick\Imagine();
             } else {
-                $imagine = new \Imagine\GD\Imagine();
+                $imagine = new \Imagine\Gd\Imagine();
             }
         }
 
@@ -742,7 +753,7 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param \Jcupitt\Vips\Image $vips
+     * @param VipsImage $vips
      *
      * @return string
      */
@@ -757,11 +768,11 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param \Jcupitt\Vips\Image$res
+     * @param VipsImage $res
      *
      * @return string
      */
-    protected function getImageStringForLoad(\Jcupitt\Vips\Image $res)
+    protected function getImageStringForLoad(VipsImage $res)
     {
         return $res->tiffsave_buffer(['compression' => ForeignTiffCompression::NONE]);
     }
@@ -770,7 +781,7 @@ class Image extends AbstractImage
      * @param array  $options
      * @param string $path
      */
-    private function prepareOutput(array $options, $path = null): ImageInterface
+    private function prepareOutput(array $options, $path = null): self
     {
         //convert to RGB if it's cmyk
         if ($this->palette() instanceof CMYK) {
@@ -808,14 +819,14 @@ class Image extends AbstractImage
      *
      * Applies options before save or output
      *
-     * @param VipsImage $image
+     * @param VipsImage $vips
      * @param array     $options
      * @param string    $path
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function applyImageOptions(VipsImage $vips, array $options, $path = null)
+    private function applyImageOptions(VipsImage $vips, array $options, $path = null): array
     {
         if (isset($options['format'])) {
             $format = $options['format'];
