@@ -98,11 +98,7 @@ class Layers extends AbstractLayers
      */
     public function count()
     {
-        try {
-            return 1;
-        } catch (\ImagickException $e) {
-            throw new RuntimeException('Failed to count the number of layers', $e->getCode(), $e);
-        }
+        return 1;
     }
 
     /**

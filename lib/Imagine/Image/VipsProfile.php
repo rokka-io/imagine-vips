@@ -46,7 +46,7 @@ class VipsProfile implements ProfileInterface
     public function path()
     {
         if (null == $this->path) {
-            self::getTmpFileFromRawData($this->data, $this->name);
+            self::getTmpFileFromRawData($this->data);
         }
 
         return $this->path;
@@ -66,7 +66,7 @@ class VipsProfile implements ProfileInterface
      *
      * @throws InvalidArgumentException In case the provided path is not valid
      *
-     * @return Profile
+     * @return self
      */
     public static function fromPath($path)
     {

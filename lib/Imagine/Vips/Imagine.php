@@ -70,9 +70,6 @@ class Imagine extends AbstractImagine
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function open($path)
     {
         $path = $this->checkPath($path);

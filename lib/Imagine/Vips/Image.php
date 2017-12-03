@@ -10,6 +10,7 @@
 namespace Imagine\Vips;
 
 use Imagine\Exception\InvalidArgumentException;
+use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\OutOfBoundsException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractImage;
@@ -22,6 +23,8 @@ use Imagine\Image\ImagineInterface;
 use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Palette\CMYK;
 use Imagine\Image\Palette\Color\ColorInterface;
+use Imagine\Image\Palette\Color\Gray;
+use Imagine\Image\Palette\Grayscale;
 use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
@@ -278,7 +281,7 @@ class Image extends AbstractImage
 
             // Make a 1x1 pixel with all the channels and cast it to provided format.
             $pixel = VipsImage::black(1, 1)->add([$red, $green, $blue, $alpha])->cast(BandFormat::UCHAR);
-        } elseif ($palette instanceof \Imagine\Image\Palette\Grayscale) {
+        } elseif ($palette instanceof Grayscale) {
             list($gray, $alpha) = self::getColorArrayAlpha($color, 2);
 
             // Make a 1x1 pixel with all the channels and cast it to provided format.
@@ -590,12 +593,14 @@ class Image extends AbstractImage
         if ($this->palette() instanceof RGB) {
             return $this->palette()->color($pixel, (int) $alpha);
         }
-        if ($this->palette() instanceof \Imagine\Image\Palette\Grayscale) {
+        if ($this->palette() instanceof Grayscale) {
             $alpha = array_pop($pixel) / 255 * 100;
             $g = (int) $pixel[0];
 
             return $this->palette()->color([$g, $g, $g], (int) $alpha);
         }
+
+        throw new NotSupportedException('Image has a not supported palette');
     }
 
     /**
@@ -678,7 +683,7 @@ class Image extends AbstractImage
                 $color->getAlpha() / 100 * 255,
             ];
         }
-        if ($color->getPalette() instanceof \Imagine\Image\Palette\Grayscale) {
+        if ($color->getPalette() instanceof Grayscale) {
             if ($bands <= 2) {
                 return [
                     $color->getValue(ColorInterface::COLOR_GRAY),
@@ -693,6 +698,7 @@ class Image extends AbstractImage
                 $color->getAlpha() / 100 * 255,
             ];
         }
+        throw new NotSupportedException('Image has a not supported palette.');
     }
 
     /**
@@ -732,7 +738,7 @@ class Image extends AbstractImage
         if ($this->vips->bands > 2) {
             $color = new \Imagine\Image\Palette\Color\RGB(new RGB(), [255, 255, 255], 0);
         } else {
-            $color = new \Imagine\Image\Palette\Color\Gray(new \Imagine\Image\Palette\Grayscale(), [255], 0);
+            $color = new Gray(new Grayscale(), [255], 0);
         }
         if (!$this->vips->hasAlpha()) {
             $this->vips = $this->vips->bandjoin([255]);
@@ -753,12 +759,13 @@ class Image extends AbstractImage
         if ($palette instanceof RGB) {
             return Interpretation::SRGB;
         }
-        if ($palette instanceof \Imagine\Image\Palette\Grayscale) {
+        if ($palette instanceof Grayscale) {
             return Interpretation::B_W;
         }
         if ($palette instanceof CMYK) {
             return Interpretation::CMYK;
         }
+        throw new NotSupportedException('Image has a not supported palette');
     }
 
     /**
@@ -789,6 +796,8 @@ class Image extends AbstractImage
     /**
      * @param array  $options
      * @param string $path
+     *
+     * @return Image
      */
     private function prepareOutput(array $options, $path = null): self
     {
@@ -798,10 +807,6 @@ class Image extends AbstractImage
         }
 
         return $this;
-        if (isset($options['format'])) {
-            // $this->vips->format = $options['format'];
-            //$this->vips->setImageFormat($options['format']);
-        }
         // FIXME: layer support, merge them if $options['animated'] != true or $options['flatten'] == true
     }
 
@@ -834,6 +839,8 @@ class Image extends AbstractImage
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
+     *
+     * @return array
      */
     private function applyImageOptions(VipsImage $vips, array $options, $path = null): array
     {
