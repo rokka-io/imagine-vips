@@ -49,5 +49,8 @@
             "imagine-*.phar",
             "composer.phar"
         ]
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.8"
     }
 }

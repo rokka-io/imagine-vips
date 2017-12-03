@@ -5,6 +5,7 @@
   * ext/vips 1.0.8 is required. Throw exceptions in methods, which needs vips 8.6.
   * Add constructor config array to be able to set `vips_cache_set_max_mem` et al.
   * Fix paste method to work with future php-vips versions
+  * Added php-cs-fixer
 
 ### 0.0.4 (2017-11-27)
 
