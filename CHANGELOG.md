@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 0.0.5 (unreleased)
+### 0.0.5 (2017-12-03)
 
   * ext/vips 1.0.8 is required. Throw exceptions in methods, which needs vips 8.6.
   * Add constructor config array to be able to set `vips_cache_set_max_mem` et al.
