@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.1.0 (2017-12-06)
+
+  * Added 2nd optional parameter to `Image::convertToAlternative` to provide your own options for loading the image as tiff. 
+
 ### 0.0.5 (2017-12-03)
 
   * ext/vips 1.0.8 is required. Throw exceptions in methods, which needs vips 8.6.

@@ -702,11 +702,12 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param ImagineInterface|null $imagine the alternative imagine interface to use, autodetects, if not set
+     * @param ImagineInterface|null $imagine     the alternative imagine interface to use, autodetects, if not set
+     * @param array|null            $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
      *
      * @return ImageInterface
      */
-    public function convertToAlternative(ImagineInterface $imagine = null)
+    public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = [])
     {
         if (null === $imagine) {
             if (class_exists('Imagick')) {
@@ -716,7 +717,7 @@ class Image extends AbstractImage
             }
         }
 
-        return $imagine->load($this->getImageStringForLoad($this->vips));
+        return $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions));
     }
 
     protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
@@ -784,13 +785,16 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param VipsImage $res
+     * @param VipsImage  $res
+     * @param array|null $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
      *
      * @return string
      */
-    protected function getImageStringForLoad(VipsImage $res)
+    protected function getImageStringForLoad(VipsImage $res, $tiffOptions = [])
     {
-        return $res->tiffsave_buffer(['compression' => ForeignTiffCompression::NONE]);
+        $options = array_merge(['compression' => ForeignTiffCompression::NONE], $tiffOptions);
+
+        return $res->tiffsave_buffer($options);
     }
 
     /**
