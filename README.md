@@ -2,11 +2,13 @@
  
 This package provides a [libvips](https://jcupitt.github.io/libvips/) integration for [Imagine](https://imagine.readthedocs.io/en/latest/). The [VIPS image processing system](https://jcupitt.github.io/libvips/) is a very fast, multi-threaded image processing library with low memory needs.
 
-The as of mid november 2017 not yet released version 8.6 of libvips is recommended for some functions. But 8.5 works for most too.
+The as of mid December 2017 not yet released version 8.6 of libvips is recommended for some functions. But 8.5 works for most too.
  
 You also need the [php-vips-ext](https://github.com/jcupitt/php-vips-ext) extension version 1.0.8 or higher (you need to install that) and the [php-vips](https://github.com/jcupitt/php-vips) classes (automatically installed by composer)
 
 The most (to us at least) important stuff is implemented. There may be edge cases, which are not covered yet, but those will be hopefully fixed soon. Report them, if you encounter one.
+
+Even it this is not a 1.0.0 release yet, the library is somehow battle tested as we use it on [rokka.io](https://rokka.io).
 
 ## Installation
  
