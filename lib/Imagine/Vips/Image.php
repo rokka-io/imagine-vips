@@ -172,7 +172,7 @@ class Image extends AbstractImage
             }
         }
         try {
-            $this->applyToLayers(function ($vips) use ($size, $start) {
+            $this->applyToLayers(function (VipsImage $vips) use ($size, $start): VipsImage {
                 return $vips->crop($start->getX(), $start->getY(), $size->getWidth(), $size->getHeight());
             });
         } catch (VipsException $e) {
@@ -190,7 +190,7 @@ class Image extends AbstractImage
     public function flipHorizontally()
     {
         try {
-            $this->applyToLayers(function ($vips) {
+            $this->applyToLayers(function (VipsImage $vips): VipsImage {
                 return $vips->flip(Direction::HORIZONTAL);
             });
         } catch (VipsException $e) {
@@ -208,7 +208,7 @@ class Image extends AbstractImage
     public function flipVertically()
     {
         try {
-            $this->applyToLayers(function ($vips) {
+            $this->applyToLayers(function (VipsImage $vips): VipsImage {
                 return $vips->flip(Direction::VERTICAL);
             });
         } catch (VipsException $e) {
@@ -312,7 +312,7 @@ class Image extends AbstractImage
     public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED)
     {
         try {
-            $this->applyToLayers(function ($vips) use ($size) {
+            $this->applyToLayers(function (VipsImage $vips) use ($size): VipsImage {
                 $original_format = $vips->format;
                 if ($vips->hasAlpha()) {
                     $vips = $vips->premultiply();
@@ -334,7 +334,7 @@ class Image extends AbstractImage
         return $this;
     }
 
-    public function applyToLayers($callback)
+    public function applyToLayers(callable $callback)
     {
         $layers = $this->layers();
         $n = count($layers);
