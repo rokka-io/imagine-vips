@@ -355,35 +355,39 @@ class Image extends AbstractImage
     {
         $color = $background ? $background : $this->palette->color('fff');
         try {
-            switch ($angle) {
-                case 0:
-                case 360:
-                case -360:
-                    break;
-                case 90:
-                case -270:
-                    $this->vips = $this->vips->rot90();
-                    break;
-                case 180:
-                case -180:
-                    $this->vips = $this->vips->rot180();
-                    break;
-                case 270:
-                case -90:
-                    $this->vips = $this->vips->rot270();
-                    break;
-                default:
-                    if (!$this->vips->hasAlpha()) {
-                        //FIXME, alpha channel with Grey16 isn't doing well on rotation. there's only alpha in the end
-                        if (Interpretation::GREY16 !== $this->vips->interpretation) {
-                            $this->vips = $this->vips->bandjoin(255);
+            $this->applyToLayers(function (VipsImage $vips) use ($angle, $color): VipsImage {
+                switch ($angle) {
+                    case 0:
+                    case 360:
+                    case -360:
+                        break;
+                    case 90:
+                    case -270:
+                        $vips = $vips->rot90();
+                        break;
+                    case 180:
+                    case -180:
+                        $vips = $vips->rot180();
+                        break;
+                    case 270:
+                    case -90:
+                        $vips = $vips->rot270();
+                        break;
+                    default:
+                        if (!$vips->hasAlpha()) {
+                            //FIXME, alpha channel with Grey16 isn't doing well on rotation. there's only alpha in the end
+                            if (Interpretation::GREY16 !== $vips->interpretation) {
+                                $vips = $vips->bandjoin(255);
+                            }
                         }
-                    }
-                    if (version_compare(vips_version(), '8.6', '<')) {
-                        throw new RuntimeException('The rotate method for angles != 90, 180, 270 needs at least vips 8.6');
-                    }
-                    $this->vips = $this->vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color, $this->vips->bands)]);
-            }
+                        if (version_compare(vips_version(), '8.6', '<')) {
+                            throw new RuntimeException('The rotate method for angles != 90, 180, 270 needs at least vips 8.6');
+                        }
+                        $vips = $vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color, $vips->bands)]);
+                }
+
+                return $vips;
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Rotate operation failed. '.$e->getMessage(), $e->getCode(), $e);
         }
