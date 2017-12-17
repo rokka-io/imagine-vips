@@ -386,15 +386,16 @@ class Image extends AbstractImage
 
         $format = $options['format'];
         if ('jpg' == $format || 'jpeg' == $format) {
-            $vips->jpegsave($path, ['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
+            $vips->jpegsave($path, [ 'strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
+            $vips->jpegsave($path, $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true], $options));
 
             return $this;
         } elseif ('png' == $format) {
-            $vips->pngsave($path, ['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
+            $vips->pngsave($path, $this->applySaveOptions(['strip' => $this->strip, 'compression' => $options['png_compression_level']], $options));
 
             return $this;
         } elseif ('webp' == $format) {
-            $vips->webpsave($path, ['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
+            $vips->webpsave($path, $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options));
 
             return $this;
         }
@@ -428,11 +429,12 @@ class Image extends AbstractImage
         $options = $this->applyImageOptions($vips, $options);
 
         if ('jpg' == $format || 'jpeg' == $format) {
-            return $vips->jpegsave_buffer(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
+
+            return $vips->jpegsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true], $options));
         } elseif ('png' == $format) {
-            return $vips->pngsave_buffer(['strip' => $this->strip, 'compression' => $options['png_compression_level']]);
+            return $vips->pngsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'compression' => $options['png_compression_level']], $options));
         } elseif ('webp' == $format) {
-            return $vips->webpsave_buffer(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']]);
+            return $vips->webpsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options));
         }
 
         //FIXME: and maybe make that more customizable
@@ -936,5 +938,18 @@ class Image extends AbstractImage
             $color->getValue(ColorInterface::COLOR_GREEN),
             $color->getValue(ColorInterface::COLOR_BLUE),
         ];
+    }
+
+    /**
+     * @param array $options
+     * @param array $saveOptions
+     * @return array
+     */
+    private function applySaveOptions(array $saveOptions, array $options): array
+    {
+        if (isset($options['vips'])) {
+            $saveOptions = array_merge($saveOptions, $options['vips']);
+        }
+        return $saveOptions;
     }
 }
