@@ -398,6 +398,10 @@ class Image extends AbstractImage
             $vips->webpsave($path, $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options));
 
             return $this;
+        } elseif ('tiff' == $format) {
+            $vips->tiffsave($path, $this->applySaveOptions([], $options));
+
+            return $this;
         }
         //fallback to imagemagick or gd
         return $image->convertToAlternative()->save($path, $options);
@@ -435,13 +439,8 @@ class Image extends AbstractImage
             return $vips->pngsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'compression' => $options['png_compression_level']], $options));
         } elseif ('webp' == $format) {
             return $vips->webpsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options));
-        }
-
-        //FIXME: and maybe make that more customizable
-        if (class_exists('Imagick')) {
-            $imagine = new \Imagine\Imagick\Imagine();
-        } else {
-            $imagine = new \Imagine\Gd\Imagine();
+        } elseif ('tiff' == $format) {
+            return $vips->tiffsave_buffer($this->applySaveOptions([], $options));
         }
         //fallback to imagemagick or gd
         return $image->convertToAlternative()->get($format, $options);
