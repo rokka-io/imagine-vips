@@ -45,9 +45,9 @@ use Jcupitt\Vips\Interpretation;
  */
 class Image extends AbstractImage
 {
-    const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB_IEC61966-2-1_black_scaled.icc';
-    const ICC_DEFAULT_PROFILE_BW = 'ISOcoated_v2_grey1c_bas.ICC';
-    const ICC_DEFAULT_PROFILE_CMYK = 'USWebUncoated.icc';
+    const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB.icm';
+    const ICC_DEFAULT_PROFILE_BW = 'gray.icc';
+    const ICC_DEFAULT_PROFILE_CMYK = 'cmyk.icm';
 
     /**
      * @var VipsImage
@@ -781,7 +781,6 @@ class Image extends AbstractImage
         if (isset(self::$interpretationIccProfileMapping[$vips->interpretation])) {
             $defaultProfile = self::$interpretationIccProfileMapping[$vips->interpretation];
         }
-
         return $defaultProfile;
     }
 
