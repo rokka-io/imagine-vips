@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### unreleased 
+
+  * Add support for 'heif_quality' (only useful if your imagick supports heif). 
+
 ### 0.1.0 (2017-12-06)
 
   * Added 2nd optional parameter to `Image::convertToAlternative` to provide your own options for loading the image as tiff. 

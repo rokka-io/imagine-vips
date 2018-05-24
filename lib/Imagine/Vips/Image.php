@@ -442,8 +442,16 @@ class Image extends AbstractImage
         } elseif ('tiff' == $format) {
             return $vips->tiffsave_buffer($this->applySaveOptions([], $options));
         }
+
+        $alt = $image->convertToAlternative();
+        // set heif quality, if heif is asked for
+        if ('heic' === $format || 'heif' === $format) {
+            if ($alt instanceof \Imagine\Imagick\Image && isset($options['heif_quality'])) {
+                $alt->getImagick()->setCompressionQuality($options['heif_quality']);
+            }
+        }
         //fallback to imagemagick or gd
-        return $image->convertToAlternative()->get($format, $options);
+        return $alt->get($format, $options);
     }
 
     /**

@@ -105,6 +105,17 @@ class Imagine extends AbstractImagine
 
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readData($string));
         } catch (\Exception $e) {
+            // sometimes we have files with colorspaces vips does not support (heic files for eaxample),
+            // let's try loading them with imagick,
+            // and convert them to png and then load again with vips.
+            // not the fastest thing, of course, but fine for our usecase
+            if (strpos($e->getMessage(), 'magickload_buffer: unsupported colorspace') !== false && class_exists('Imagick')) {
+                $im = new \Imagick();
+                $im->readImageBlob($string);
+                $im->setFormat('png');
+                return $this->load($im->getImageBlob());
+            }
+
             throw new RuntimeException('Could not load image from string', $e->getCode(), $e);
         }
     }
