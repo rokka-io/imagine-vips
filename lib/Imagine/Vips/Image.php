@@ -981,7 +981,7 @@ class Image extends AbstractImage
                 }
                 // if only the format option is set, we can use that, otherwise we fall back to the alternative
                 // since they may be options, magicksave doesn't support yet
-                if (isset($options['format']) && count($options) === 1) {
+                else if (isset($options['format']) && count($options) === 1) {
                     $saveOptions = ['format' => $format];
                     $method = 'magicksave';
                 }
