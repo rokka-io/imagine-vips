@@ -73,12 +73,14 @@ class Effects implements EffectsInterface
             if (Interpretation::CMYK == $vips->interpretation) {
                 $vips = $vips->icc_import(['embedded' => true]);
             }
+            $vips = $vips->colourspace(Interpretation::B_W);
+            // remove icc_profile_data, since this can be wrong 
+            $vips->remove('icc-profile-data');
+            $this->image->setVips($vips, true);
 
-            $this->image->setVips($vips->colourspace(Interpretation::B_W), true);
         } catch (Exception $e) {
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);
         }
-
         return $this;
     }
 
