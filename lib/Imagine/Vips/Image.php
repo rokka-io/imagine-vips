@@ -379,32 +379,27 @@ class Image extends AbstractImage
      */
     public function save($path = null, array $options = [])
     {
-        $options = $this->applyImageOptions($this->vips, $options, $path);
         /** @var Image $image */
         $image = $this->prepareOutput($options);
         $vips = $image->getVips();
-
+        $options = $this->applyImageOptions($vips, $options, $path);
         $format = $options['format'];
-        if ('jpg' == $format || 'jpeg' == $format) {
-            $vips->jpegsave($path, [ 'strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true]);
-            $vips->jpegsave($path, $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true], $options));
 
-            return $this;
-        } elseif ('png' == $format) {
-            $vips->pngsave($path, $this->applySaveOptions(['strip' => $this->strip, 'compression' => $options['png_compression_level']], $options));
+        list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
 
-            return $this;
-        } elseif ('webp' == $format) {
-            $vips->webpsave($path, $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options));
-
-            return $this;
-        } elseif ('tiff' == $format) {
-            $vips->tiffsave($path, $this->applySaveOptions([], $options));
-
-            return $this;
+        if ($method !== null) {
+            try {
+                return $vips->$method($path, $saveOptions);
+            } catch (\Jcupitt\Vips\Exception $e) {
+                // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
+                // installed
+                if ($method !== 'magicksave') {
+                    throw $e;
+                }
+            }
         }
-        //fallback to imagemagick or gd
-        return $image->convertToAlternative()->save($path, $options);
+        $alt = $this->convertToAlternativeForSave($options, $image, $format);
+        return $alt->save($path, $options);
     }
 
     /**
@@ -428,29 +423,24 @@ class Image extends AbstractImage
         $options['format'] = $format;
         /** @var Image $image */
         $image = $this->prepareOutput($options);
-
         $vips = $image->getVips();
         $options = $this->applyImageOptions($vips, $options);
 
-        if ('jpg' == $format || 'jpeg' == $format) {
+        list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
 
-            return $vips->jpegsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true], $options));
-        } elseif ('png' == $format) {
-            return $vips->pngsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'compression' => $options['png_compression_level']], $options));
-        } elseif ('webp' == $format) {
-            return $vips->webpsave_buffer($this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options));
-        } elseif ('tiff' == $format) {
-            return $vips->tiffsave_buffer($this->applySaveOptions([], $options));
-        }
-
-        $alt = $image->convertToAlternative();
-        // set heif quality, if heif is asked for
-        if ('heic' === $format || 'heif' === $format) {
-            if ($alt instanceof \Imagine\Imagick\Image && isset($options['heif_quality'])) {
-                $alt->getImagick()->setCompressionQuality($options['heif_quality']);
+        if ($method !== null) {
+            try {
+                $saveMethod = $method . "_buffer";
+                return $vips->$saveMethod($saveOptions);
+            } catch (\Jcupitt\Vips\Exception $e) {
+                // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
+                // installed
+                if ($method !== 'magicksave') {
+                    throw $e;
+                }
             }
         }
-        //fallback to imagemagick or gd
+        $alt = $this->convertToAlternativeForSave($options, $image, $format);
         return $alt->get($format, $options);
     }
 
@@ -712,7 +702,7 @@ class Image extends AbstractImage
 
     /**
      * @param ImagineInterface|null $imagine     the alternative imagine interface to use, autodetects, if not set
-     * @param array|null            $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
+     * @param array                 $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
      *
      * @return ImageInterface
      */
@@ -957,5 +947,59 @@ class Image extends AbstractImage
             $saveOptions = array_merge($saveOptions, $options['vips']);
         }
         return $saveOptions;
+    }
+
+    /**
+     * @param string $format
+     * @param array $options
+     * @return array
+     */
+    private function getSaveMethodAndOptions($format, array $options): array
+    {
+        $method = null;
+        $saveOptions = [];
+        if ('jpg' == $format || 'jpeg' == $format) {
+
+            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true], $options);
+            $method = 'jpegsave';
+        } elseif ('png' == $format) {
+            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'compression' => $options['png_compression_level']], $options);
+            $method = 'pngsave';
+        } elseif ('webp' == $format) {
+            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options);
+            $method = 'webpsave';
+        } elseif ('tiff' == $format) {
+            $saveOptions = $this->applySaveOptions([], $options);
+            $method = 'tiffsave';
+        } else {
+            // use magicksave, if available and possible
+            // ppm in vips has some strange issues, save in fallback...
+            if ($format !== "ppm" && version_compare(vips_version(), '8.7.0', '>=')) {
+                if ('heic' == $format || 'heif' === $format) {
+                    $saveOptions = ['quality' => $options['heif_quality'], 'format' => $format];
+                    $method = 'magicksave';
+                }
+                // if only the format option is set, we can use that, otherwise we fall back to the alternative
+                // since they may be options, magicksave doesn't support yet
+                if (isset($options['format']) && count($options) === 1) {
+                    $saveOptions = ['format' => $format];
+                    $method = 'magicksave';
+                }
+            }
+        }
+        return array($method, $saveOptions);
+    }
+
+    private function convertToAlternativeForSave(array $options, Image $image, string $format): ImageInterface
+    {
+        //fallback to imagemagick or gd
+        $alt = $image->convertToAlternative();
+        // set heif quality, if heif is asked for
+        if ('heic' === $format || 'heif' === $format) {
+            if ($alt instanceof \Imagine\Imagick\Image && isset($options['heif_quality'])) {
+                $alt->getImagick()->setCompressionQuality($options['heif_quality']);
+            }
+        }
+        return $alt;
     }
 }
