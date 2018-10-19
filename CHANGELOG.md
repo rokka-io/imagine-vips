@@ -1,12 +1,17 @@
 # CHANGELOG
 
-### unreleased 
+### 0.2.0 (unreleased) 
 
-  * Add support for 'heif_quality' (only useful if your imagick supports heif). 
+  * Add support for 'heif_quality' (only useful if your imagemagick supports heif).
+  * Add support for magicksave. If you have vips >= 8.7 and imagemagick is included, we now 
+    directly use magicksave to save non-supported-by-vips file formats. No need to convert it to an imagick 
+    object first, resulting in much better performance. 
+  * Add possibility for individual vips save options 
+  * Replace colorprofile with free ones.
 
 ### 0.1.0 (2017-12-06)
 
-  * Added 2nd optional parameter to `Image::convertToAlternative` to provide your own options for loading the image as tiff. 
+  * Add 2nd optional parameter to `Image::convertToAlternative` to provide your own options for loading the image as tiff. 
 
 ### 0.0.5 (2017-12-03)
 

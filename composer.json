@@ -30,8 +30,8 @@
 
     },
     "suggest": {
-        "ext-gd": "to use the GD implementation fallback for saving",
-        "ext-imagick": "to use the Imagick implementation fallback for saving"
+        "ext-gd": "to use the GD implementation fallback for saving unsupported file formats",
+        "ext-imagick": "to use the Imagick implementation fallback for saving unsupported file formats"
     },
     "autoload": {
         "psr-0": {

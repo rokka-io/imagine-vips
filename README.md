@@ -2,7 +2,7 @@
  
 This package provides a [libvips](https://github.com/libvips/libvips) integration for [Imagine](https://imagine.readthedocs.io/en/latest/). The [VIPS image processing system](https://libvips.github.io/libvips/) is a very fast, multi-threaded image processing library with low memory needs.
 
-Version 8.6 of libvips is highly recommended. `paste` and `rotate` by angles other than multipliers of 90 are not supported with older versions of libvips.
+Version 8.6 or higher of libvips is highly recommended. `paste` and `rotate` by angles other than multipliers of 90 are not supported with older versions of libvips.
  
 You also need the [php-vips-ext](https://github.com/libvips/php-vips-ext) extension version 1.0.8 or higher (you need to install that manually) and the [php-vips](https://github.com/libvips/php-vips) classes (automatically installed by composer)
 
@@ -33,7 +33,7 @@ $imagine->open('/path/to/large_image.jpg')
  
 ## Missing stuff
 
-Needs vips 8.6:
+Needs vips 8.6 or higher:
 
 * paste
 * rotate by angles other than multipliers of 90
@@ -60,7 +60,7 @@ There's a layers support in the works in  [layers-support](https://github.com/ro
 
 ## Saving files
 
-Natively supported by libvips for saving are jpg, png and webp. For the rest this adapter falls back to the Imagick or GD implementation.
+Natively supported by libvips for saving are jpg, png, webp and tiff. If you have vips 8.7.0 with imagemagick support, it will use vips "[magicksave](https://jcupitt.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave)" for all other formats. It not, this adapter falls back to the Imagick or GD implementation.
 
 ## Contribution
 
