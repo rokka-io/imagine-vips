@@ -12,6 +12,7 @@ namespace Imagine\Vips;
 use Imagine\Effects\EffectsInterface;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\Palette\Color\ColorInterface;
+use Imagine\Utils\Matrix;
 use Jcupitt\Vips\Exception;
 use Jcupitt\Vips\Interpretation;
 
@@ -121,6 +122,53 @@ class Effects implements EffectsInterface
         } catch (\Exception $e) {
             throw new RuntimeException('Failed to blur the image', $e->getCode(), $e);
         }
+
+        return $this;
+    }
+
+    public function brightness($brightness)
+    {
+        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter. You can use modulate() instead.');
+    }
+
+    public function convolve(Matrix $matrix)
+    {
+        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    /**
+     * Modulates an image for brightness, saturation and hue.
+     *
+     * @param int $brightness Multiplier in percent
+     * @param int $saturation Multiplier in percent
+     * @param int $hue        rotate by degrees on the color wheel, 0/360 don't change anything
+     *
+     * @return RokkaImageInterface
+     */
+
+    public function modulate(int $brightness = 100, int $saturation = 100, int $hue = 0): RokkaImageInterface
+    {
+        $originalColorspace = $this->vips->interpretation;
+        $lch = $this->vips->colourspace(Interpretation::LCH);
+        $multiply = [$brightness / 100, $saturation / 100, 1];
+        if ($lch->hasAlpha()) {
+            $multiply[] = 1;
+        }
+        $lch = $lch->multiply($multiply);
+
+        if (0 != $hue) {
+            $add = [0, 0, $hue];
+            if ($lch->hasAlpha()) {
+                $add[] = 0;
+            }
+            $lch = $lch->add($add);
+        }
+        // we can't convert from lch to rgb, needs srgb.
+        if (Interpretation::RGB === $originalColorspace) {
+            $originalColorspace = Interpretation::SRGB;
+        }
+        $image = $lch->colourspace($originalColorspace);
+        $this->setVips($image);
 
         return $this;
     }
