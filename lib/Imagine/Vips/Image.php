@@ -234,7 +234,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function paste(ImageInterface $image, PointInterface $start)
+    public function paste(ImageInterface $image, PointInterface $start, $alpha = 100)
     {
         if (!$image instanceof self) {
             if (method_exists($image, "convertToVips")) {
