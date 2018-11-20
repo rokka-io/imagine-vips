@@ -102,7 +102,6 @@ class Imagine extends AbstractImagine
         try {
             $loadOptions = $this->getLoadOptions(VipsImage::findLoadBuffer($string), $loadOptions);
             $vips = VipsImage::newFromBuffer($string, '', $loadOptions);
-
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readData($string));
         } catch (\Exception $e) {
             // sometimes we have files with colorspaces vips does not support (heic files for eaxample),
@@ -113,7 +112,7 @@ class Imagine extends AbstractImagine
                 $im = new \Imagick();
                 $im->readImageBlob($string);
                 $im->setFormat('png');
-                return $this->load($im->getImageBlob());
+                return $this->load($im->getImageBlob(), $loadOptions);
             }
 
             throw new RuntimeException('Could not load image from string', $e->getCode(), $e);

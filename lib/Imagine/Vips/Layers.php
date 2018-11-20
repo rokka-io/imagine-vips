@@ -36,6 +36,8 @@ class Layers extends AbstractLayers
      */
     private $offset = 0;
 
+    private $count = 0;
+
     public function __construct(Image $image)
     {
         $this->image = $image;
@@ -48,11 +50,13 @@ class Layers extends AbstractLayers
                 $total_height = $vips->height;
                 $total_width = $vips->width;
                 for ($i = 0; $i < ($total_height / $page_height); ++$i) {
+                    $this->count++;
                     $this->resources[$i] = $vips->crop(0, $page_height * $i, $total_width, $page_height);
                 }
                 $image->setVips($this->resources[0]);
             }
         } catch (Exception $e) {
+            $this->count = 1;
             $this->resources[0] = $vips;
         }
     }
@@ -137,7 +141,7 @@ class Layers extends AbstractLayers
      */
     public function count()
     {
-        return 1;
+        return $this->count;
     }
 
     /**
