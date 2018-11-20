@@ -237,7 +237,11 @@ class Image extends AbstractImage
     public function paste(ImageInterface $image, PointInterface $start)
     {
         if (!$image instanceof self) {
-            throw new RuntimeException("Paste image needs to be a Imagine\Vips\Image object");
+            if (method_exists($image, "convertToVips")) {
+                $image = $image->convertToVips();
+            } else {
+                throw new RuntimeException("Paste image needs to be a Imagine\Vips\Image object");
+            }
         }
         $inVips = $image->getVips();
 
