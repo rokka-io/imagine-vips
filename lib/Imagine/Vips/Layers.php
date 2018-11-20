@@ -65,6 +65,8 @@ class Layers extends AbstractLayers
             }
         }
         $this->count = count($this->resources);
+        //always set the first layer
+        $this->layers[0] = $this->image;
         // we don't need it, it's in $this->image
         unset( $this->resources[0]);
     }
@@ -177,6 +179,15 @@ class Layers extends AbstractLayers
      */
     public function offsetSet($offset, $image)
     {
+        if ($offset === null) {
+            $this->layers[] = $image;
+        } else {
+            $this->layers[$offset] = $image;
+        }
+        $this->count++;
+        if ($this->count === 2) {
+            $this->image->getVips()->set('page-height', $this->image->getVips()->height);
+        }
     }
 
     /**
