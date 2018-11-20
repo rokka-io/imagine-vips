@@ -24,6 +24,9 @@ class Layers extends AbstractLayers
      */
     private $image;
 
+    /**
+     * @var Image[]
+     */
     private $layers = [];
 
     private $resources = [];
@@ -74,9 +77,9 @@ class Layers extends AbstractLayers
      */
     public function coalesce()
     {
-        $merged = $this->offsetGet(0);
+        $merged = $this->extractAt(0)->getVips();
         $i = 0;
-        foreach ($this->resources as $res) {
+        foreach ($this->getResources() as $res) {
             if (0 == $i) {
                 ++$i;
                 continue;
@@ -85,7 +88,6 @@ class Layers extends AbstractLayers
 
             $frame = clone $merged;
             $this->layers[$i] = $frame;
-            $this->resources[$i] = $frame->getVips();
             ++$i;
         }
     }
@@ -170,25 +172,28 @@ class Layers extends AbstractLayers
 
     public function getResource($offset)
     {
-        return $this->resources[$offset];
-    }
-
-    public function setResource($offset, \Jcupitt\Vips\Image $resource)
-    {
-        if ($resource->interpretation != $this->resources[$offset]) {
-            if (isset($this->layers[$offset])) {
-                $this->layers[$offset]->updatePalette();
-            }
+        if ($offset === 0) {
+            return $this->image->getVips();
         }
-        $this->resources[$offset] = $resource;
+        // if we already have an image object for this $offset, use this
+       if (isset($this->layers[$offset])) {
+            return $this->layers[$offset]->getVips();
+        } else {
+            $this->resources[$offset];
+        }
     }
 
-    /**
+     /**
      * @return \Jcupitt\Vips\Image[]
      */
     public function getResources()
     {
-        return $this->resources;
+        $resources = [];
+        for($i = 0; $i < count($this); $i++) {
+            $resources[$i] = $this->getResource($i);
+
+        }
+        return $resources;
     }
 
     /**
@@ -202,9 +207,14 @@ class Layers extends AbstractLayers
      */
     private function extractAt($offset)
     {
+        if ($offset === 0) {
+            return $this->image;
+        }
         if (!isset($this->layers[$offset])) {
             try {
                 $this->layers[$offset] = new Image($this->resources[$offset], $this->image->palette(), new MetadataBag());
+                //unset resource, not needed anymore, directly from the image object fetched from now on
+                unset($this->resources[$offset]);
             } catch (Exception $e) {
                 throw new RuntimeException(sprintf('Failed to extract layer %d', $offset), $e->getCode(), $e);
             }

@@ -97,7 +97,14 @@ class Image extends AbstractImage
             $new = $this->usePalette(new RGB());
             $this->vips = $new->getVips();
             $this->palette = $new->palette();
+            $this->layers = $new->layers();
         }
+    }
+
+    public function __clone()
+    {
+        parent::__clone();
+        $this->layers = new Layers($this);
     }
 
     /**
@@ -339,11 +346,11 @@ class Image extends AbstractImage
         $layers = $this->layers();
         $n = count($layers);
         for ($i = 0; $i < $n; ++$i) {
-            $vips = $layers->getResource($i);
+            $image = $layers[$i];
+            $vips = $image->getVips();
             $vips = $callback($vips);
-            $layers->setResource($i, $vips);
+            $image->setVips($vips);
         }
-        $this->setVips($layers->getResource(0));
     }
 
     /**
