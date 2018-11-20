@@ -95,7 +95,6 @@ class Effects implements EffectsInterface
             }
             $this->image->setVips($vips, true);
         } catch (Exception $e) {
-            dump($e);die;
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);
         }
         return $this;
