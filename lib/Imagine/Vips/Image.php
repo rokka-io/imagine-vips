@@ -455,9 +455,14 @@ class Image extends AbstractImage
         $image = $this->prepareOutput($options);
         $vips = $image->getVips();
         $options = $this->applyImageOptions($vips, $options);
-
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
-
+        
+        if ($format === 'gif' && count($image->layers()) > 1) {
+            foreach($image->layers()->getResources() as $_k => $_v) {
+                if ($_k === 0) { continue; }
+                $vips = $vips->join($_v, "vertical");
+            }
+        }
         if ($method !== null) {
             try {
                 $saveMethod = $method . "_buffer";
@@ -1024,6 +1029,9 @@ class Image extends AbstractImage
         } elseif ('tiff' == $format) {
             $saveOptions = $this->applySaveOptions([], $options);
             $method = 'tiffsave';
+        } elseif ('gif' == $format) {
+            $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
+            $method = 'magicksave';
         } else {
             // use magicksave, if available and possible
             // ppm in vips has some strange issues, save in fallback...

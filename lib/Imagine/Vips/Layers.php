@@ -36,29 +36,37 @@ class Layers extends AbstractLayers
      */
     private $offset = 0;
 
+    /**
+     * @var int
+     */
     private $count = 0;
 
-    public function __construct(Image $image)
+    public function __construct(Image $image, ?array $resources = null)
     {
         $this->image = $image;
 
         $vips = $image->getVips();
         //try extracting layers
-        try {
-            if ($vips->get('page-height')) {
-                $page_height = $vips->get('page-height');
-                $total_height = $vips->height;
-                $total_width = $vips->width;
-                for ($i = 0; $i < ($total_height / $page_height); ++$i) {
-                    $this->count++;
-                    $this->resources[$i] = $vips->crop(0, $page_height * $i, $total_width, $page_height);
+        if ($resources !== null) {
+            $this->resources = $resources;
+        } else {
+            try {
+                if ($vips->get('page-height')) {
+                    $page_height = $vips->get('page-height');
+                    $total_height = $vips->height;
+                    $total_width = $vips->width;
+                    for ($i = 0; $i < ($total_height / $page_height); ++$i) {
+                        $this->resources[$i] = $vips->crop(0, $page_height * $i, $total_width, $page_height);
+                    }
+                    $image->setVips($this->resources[0]);
                 }
-                $image->setVips($this->resources[0]);
+            } catch (Exception $e) {
+                $this->resources[0] = $vips;
             }
-        } catch (Exception $e) {
-            $this->count = 1;
-            $this->resources[0] = $vips;
         }
+        $this->count = count($this->resources);
+        // we don't need it, it's in $this->image
+        unset( $this->resources[0]);
     }
 
     /**
@@ -73,6 +81,10 @@ class Layers extends AbstractLayers
      */
     public function animate($format, $delay, $loops)
     {
+        $vips = $this->image->getVips();
+        $vips->set('gif-delay', $delay );
+        $vips->set('gif-loop', $loops );
+
         return $this;
     }
 
@@ -183,7 +195,7 @@ class Layers extends AbstractLayers
        if (isset($this->layers[$offset])) {
             return $this->layers[$offset]->getVips();
         } else {
-            $this->resources[$offset];
+            return $this->resources[$offset];
         }
     }
 
