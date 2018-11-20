@@ -21,6 +21,9 @@ use Jcupitt\Vips\Interpretation;
  */
 class Effects implements EffectsInterface
 {
+    /**
+     * @var Image
+     */
     private $image;
 
     public function __construct(Image $image)
@@ -70,19 +73,22 @@ class Effects implements EffectsInterface
     public function grayscale()
     {
         try {
-            $vips = $this->image->getVips();
-            if (Interpretation::CMYK == $vips->interpretation) {
-                $vips = $vips->icc_import(['embedded' => true]);
-            }
-            $vips = $vips->colourspace(Interpretation::B_W);
-            // remove icc_profile_data, since this can be wrong
+            $this->image->applyToLayers(function (\Jcupitt\Vips\Image $vips) {
+
+                if (Interpretation::CMYK == $vips->interpretation) {
+                    $vips = $vips->icc_import(['embedded' => true]);
+                }
+                $vips = $vips->colourspace(Interpretation::B_W);
+                // remove icc_profile_data, since this can be wrong
+
+                return $vips;
+            });
             try {
                 $vips->remove('icc-profile-data');
             } catch (\Jcupitt\Vips\Exception $e) {
                 //throws an exception if not existing, so just move on
             }
             $this->image->setVips($vips, true);
-
         } catch (Exception $e) {
             dump($e);die;
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);

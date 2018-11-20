@@ -311,24 +311,38 @@ class Image extends AbstractImage
     public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED)
     {
         try {
-            $vips = $this->vips;
-            $original_format = $vips->format;
-            if ($vips->hasAlpha()) {
-                $vips = $vips->premultiply();
-            }
-            $vips = $vips->resize($size->getWidth() / $vips->width, ['vscale' => $size->getHeight() / $vips->height]);
-            if ($vips->hasAlpha()) {
-                $vips = $vips->unpremultiply();
-                if ($vips->format != $original_format) {
-                    $vips = $vips->cast($original_format);
+            $this->applyToLayers(function ($vips) use ($size) {
+                $original_format = $vips->format;
+                if ($vips->hasAlpha()) {
+                    $vips = $vips->premultiply();
                 }
-            }
-            $this->vips = $vips;
+                $vips = $vips->resize($size->getWidth() / $vips->width, ['vscale' => $size->getHeight() / $vips->height]);
+                if ($vips->hasAlpha()) {
+                    $vips = $vips->unpremultiply();
+                    if ($vips->format != $original_format) {
+                        $vips = $vips->cast($original_format);
+                    }
+                }
+
+                return $vips;
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Resize operation failed', $e->getCode(), $e);
         }
 
         return $this;
+    }
+
+    public function applyToLayers($callback)
+    {
+        $layers = $this->layers();
+        $n = count($layers);
+        for ($i = 0; $i < $n; ++$i) {
+            $vips = $layers->getResource($i);
+            $vips = $callback($vips);
+            $layers->setResource($i, $vips);
+        }
+        $this->setVips($layers->getResource(0));
     }
 
     /**
@@ -571,8 +585,10 @@ class Image extends AbstractImage
         } catch (VipsException $e) {
             throw new RuntimeException('Error while getting image pixel color', $e->getCode(), $e);
         }
-
-        return $this->pixelToColor($pixel);
+        if (is_array($pixel)) {
+            return $this->pixelToColor($pixel);
+        }
+        throw new RuntimeException(sprintf('Error getting color at point. Was not an array.'));
     }
 
     /**
@@ -611,8 +627,6 @@ class Image extends AbstractImage
      */
     public function layers()
     {
-        //FIXME: implement actual layers, not just the first layer in vips
-
         return $this->layers;
     }
 
@@ -720,7 +734,28 @@ class Image extends AbstractImage
             }
         }
 
-        return $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions));
+        $image = $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions));
+        // if there's only one layer, we can do an early return
+        if (1 == count($this->layers())) {
+            return $image;
+        }
+        $i = 0;
+        foreach ($this->layers()->getResources() as $res) {
+            if (0 == $i) {
+                ++$i;
+                continue;
+            }
+            $newLayer = $imagine->load($this->getImageStringForLoad($res));
+            $image->layers()->add($newLayer);
+            ++$i;
+        }
+
+        return $image;
+    }
+
+    public function updatePalette()
+    {
+        $this->palette = Imagine::createPalette($this->vips);
     }
 
     protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
@@ -751,11 +786,6 @@ class Image extends AbstractImage
         $this->vips = $new->insert($this->vips, $start->getX(), $start->getY());
 
         return $this;
-    }
-
-    protected function updatePalette()
-    {
-        $this->palette = Imagine::createPalette($this->vips);
     }
 
     protected static function getInterpretation(PaletteInterface $palette)

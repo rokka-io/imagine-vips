@@ -14,6 +14,7 @@ namespace Imagine\Vips;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
 use Imagine\Image\Metadata\MetadataBag;
+use Imagine\Image\Point;
 use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
@@ -35,7 +36,6 @@ class Layers extends AbstractLayers
     public function __construct(Image $image)
     {
         $this->image = $image;
-        $this->palette = $image->palette();
 
         $vips = $image->getVips();
         //try extracting layers
@@ -50,6 +50,7 @@ class Layers extends AbstractLayers
                 $image->setVips($this->resources[0]);
             }
         } catch (Exception $e) {
+            $this->resources[0] = $vips;
         }
     }
 
@@ -73,6 +74,20 @@ class Layers extends AbstractLayers
      */
     public function coalesce()
     {
+        $merged = $this->offsetGet(0);
+        $i = 0;
+        foreach ($this->resources as $res) {
+            if (0 == $i) {
+                ++$i;
+                continue;
+            }
+            $merged = $merged->paste($this->offsetGet($i), new Point(0, 0));
+
+            $frame = clone $merged;
+            $this->layers[$i] = $frame;
+            $this->resources[$i] = $frame->getVips();
+            ++$i;
+        }
     }
 
     /**
@@ -153,6 +168,26 @@ class Layers extends AbstractLayers
     {
     }
 
+    public function getResource($offset)
+    {
+        return $this->resources[$offset];
+    }
+
+    public function setResource($offset, \Jcupitt\Vips\Image $resource)
+    {
+        if ($resource->interpretation != $this->resources[$offset]) {
+            if (isset($this->layers[$offset])) {
+                $this->layers[$offset]->updatePalette();
+            }
+        }
+        $this->resources[$offset] = $resource;
+    }
+
+    public function getResources()
+    {
+        return $this->resources;
+    }
+
     /**
      * Tries to extract layer at given offset.
      *
@@ -166,7 +201,7 @@ class Layers extends AbstractLayers
     {
         if (!isset($this->layers[$offset])) {
             try {
-                $this->layers[$offset] = new Image($this->resources[$offset], $this->palette, new MetadataBag());
+                $this->layers[$offset] = new Image($this->resources[$offset], $this->image->palette(), new MetadataBag());
             } catch (Exception $e) {
                 throw new RuntimeException(sprintf('Failed to extract layer %d', $offset), $e->getCode(), $e);
             }
