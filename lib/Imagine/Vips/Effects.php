@@ -89,12 +89,12 @@ class Effects implements EffectsInterface
                 return $vips;
             });
             try {
-                $vips->remove('icc-profile-data');
+                $this->image->getVips()->remove('icc-profile-data');
             } catch (\Jcupitt\Vips\Exception $e) {
                 //throws an exception if not existing, so just move on
             }
-            $this->image->setVips($vips, true);
         } catch (Exception $e) {
+            dump($e);die;
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);
         }
         return $this;
