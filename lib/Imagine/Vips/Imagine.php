@@ -115,6 +115,10 @@ class Imagine extends AbstractImagine
                 return $this->load($im->getImageBlob(), $loadOptions);
             }
 
+            if ($e->getMessage('gifload_buffer: Image is defective, decoding aborted')) {
+                throw new RuntimeException('Image is defective, decoding aborted', $e->getCode(), $e);
+            }
+
             throw new RuntimeException('Could not load image from string', $e->getCode(), $e);
         }
     }
