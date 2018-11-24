@@ -1032,6 +1032,9 @@ class Image extends AbstractImage
         } elseif ('gif' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
             $method = 'magicksave';
+        } elseif ('jp2' == $format) {
+            $saveOptions = $this->applySaveOptions(['format' => 'jp2', 'quality' => $options['jp2_quality']], $options);
+            $method = 'magicksave';
         } else {
             // use magicksave, if available and possible
             // ppm in vips has some strange issues, save in fallback...
