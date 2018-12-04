@@ -785,13 +785,25 @@ class Image extends AbstractImage
     protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
     {
         $defaultProfile = $this->getDefaultProfileForInterpretation($vips);
-        $vips = $vips->icc_transform(
-            VipsProfile::fromRawData($profile->data())->path(),
-            [
-                'embedded' => true,
-                'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
-            ]
-        );
+        try {
+            $vips = $vips->icc_transform(
+                VipsProfile::fromRawData($profile->data())->path(),
+                [
+                    'embedded' => true,
+                    'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
+                ]
+            );
+        } catch (Exception $e) {
+            // if there's an exception, usually something is wrong with the embedded profile
+            // try withou
+            $vips = $vips->icc_transform(
+                VipsProfile::fromRawData($profile->data())->path(),
+                [
+                    'embedded' => false,
+                    'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
+                ]
+            );
+        }
 
         return $vips;
     }
