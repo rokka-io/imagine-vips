@@ -20,6 +20,7 @@ use Imagine\Image\Fill\FillInterface;
 use Imagine\Image\Fill\Gradient\Horizontal;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\ImagineInterface;
+use Imagine\Image\Metadata\DefaultMetadataReader;
 use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Palette\CMYK;
 use Imagine\Image\Palette\Color\ColorInterface;
@@ -744,14 +745,30 @@ class Image extends AbstractImage
     public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = [])
     {
         if (null === $imagine) {
+            $oldMetaReader = null;
             if (class_exists('Imagick')) {
                 $imagine = new \Imagine\Imagick\Imagine();
             } else {
                 $imagine = new \Imagine\Gd\Imagine();
             }
+        } else {
+            $oldMetaReader = $imagine->getMetadataReader();
+
         }
 
+        // no need to reread meta data, saves lots of memory
+        $imagine->setMetadataReader(new DefaultMetadataReader());
+
         $image = $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions));
+        // readd metadata
+        foreach ( $this->metadata() as $key => $value) {
+            $image->metadata()->offsetSet($key, $value);
+        }
+
+        if ($oldMetaReader !== null) {
+            $imagine->setMetadataReader($oldMetaReader);
+        }
+
         // if there's only one layer, we can do an early return
         if (1 == count($this->layers())) {
             return $image;
