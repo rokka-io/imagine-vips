@@ -94,7 +94,6 @@ class Effects implements EffectsInterface
                 //throws an exception if not existing, so just move on
             }
         } catch (Exception $e) {
-            dump($e);die;
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);
         }
         return $this;
