@@ -13,6 +13,9 @@ namespace Imagine\Vips;
 
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
+use Imagine\Image\Metadata\MetadataBag;
+use Imagine\Image\Point;
+use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
 {
@@ -22,13 +25,50 @@ class Layers extends AbstractLayers
     private $image;
 
     /**
+     * @var Image[]
+     */
+    private $layers = [];
+
+    private $resources = [];
+
+    /**
      * @var int
      */
     private $offset = 0;
 
-    public function __construct(Image $image)
+    /**
+     * @var int
+     */
+    private $count = 0;
+
+    public function __construct(Image $image, ?array $resources = null)
     {
         $this->image = $image;
+
+        $vips = $image->getVips();
+        //try extracting layers
+        if ($resources !== null) {
+            $this->resources = $resources;
+        } else {
+            try {
+                if ($vips->get('page-height')) {
+                    $page_height = $vips->get('page-height');
+                    $total_height = $vips->height;
+                    $total_width = $vips->width;
+                    for ($i = 0; $i < ($total_height / $page_height); ++$i) {
+                        $this->resources[$i] = $vips->crop(0, $page_height * $i, $total_width, $page_height);
+                    }
+                    $image->setVips($this->resources[0]);
+                }
+            } catch (Exception $e) {
+                $this->resources[0] = $vips;
+            }
+        }
+        $this->count = count($this->resources);
+        //always set the first layer
+        $this->layers[0] = $this->image;
+        // we don't need it, it's in $this->image
+        unset( $this->resources[0]);
     }
 
     /**
@@ -43,6 +83,10 @@ class Layers extends AbstractLayers
      */
     public function animate($format, $delay, $loops)
     {
+        $vips = $this->image->getVips();
+        $vips->set('gif-delay', $delay );
+        $vips->set('gif-loop', $loops );
+
         return $this;
     }
 
@@ -51,6 +95,19 @@ class Layers extends AbstractLayers
      */
     public function coalesce()
     {
+        $merged = $this->extractAt(0)->getVips();
+        $i = 0;
+        foreach ($this->getResources() as $res) {
+            if (0 == $i) {
+                ++$i;
+                continue;
+            }
+            $merged = $merged->paste($this->offsetGet($i), new Point(0, 0));
+
+            $frame = clone $merged;
+            $this->layers[$i] = $frame;
+            ++$i;
+        }
     }
 
     /**
@@ -98,7 +155,7 @@ class Layers extends AbstractLayers
      */
     public function count()
     {
-        return 1;
+        return $this->count;
     }
 
     /**
@@ -122,6 +179,15 @@ class Layers extends AbstractLayers
      */
     public function offsetSet($offset, $image)
     {
+        if ($offset === null) {
+            $this->layers[] = $image;
+        } else {
+            $this->layers[$offset] = $image;
+        }
+        $this->count++;
+        if ($this->count === 2) {
+            $this->image->getVips()->set('page-height', $this->image->getVips()->height);
+        }
     }
 
     /**
@@ -129,6 +195,32 @@ class Layers extends AbstractLayers
      */
     public function offsetUnset($offset)
     {
+    }
+
+    public function getResource($offset)
+    {
+        if ($offset === 0) {
+            return $this->image->getVips();
+        }
+        // if we already have an image object for this $offset, use this
+       if (isset($this->layers[$offset])) {
+            return $this->layers[$offset]->getVips();
+        } else {
+            return $this->resources[$offset];
+        }
+    }
+
+     /**
+     * @return \Jcupitt\Vips\Image[]
+     */
+    public function getResources()
+    {
+        $resources = [];
+        for($i = 0; $i < count($this); $i++) {
+            $resources[$i] = $this->getResource($i);
+
+        }
+        return $resources;
     }
 
     /**
@@ -142,10 +234,19 @@ class Layers extends AbstractLayers
      */
     private function extractAt($offset)
     {
-        if ($offset > 0) {
-            throw new RuntimeException("The vips adapter doesn't support layered images. Only the first one is available.");
+        if ($offset === 0) {
+            return $this->image;
+        }
+        if (!isset($this->layers[$offset])) {
+            try {
+                $this->layers[$offset] = new Image($this->resources[$offset], $this->image->palette(), new MetadataBag());
+                //unset resource, not needed anymore, directly from the image object fetched from now on
+                unset($this->resources[$offset]);
+            } catch (Exception $e) {
+                throw new RuntimeException(sprintf('Failed to extract layer %d', $offset), $e->getCode(), $e);
+            }
         }
 
-        return $this->image;
+        return $this->layers[$offset];
     }
 }

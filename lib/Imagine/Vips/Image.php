@@ -20,6 +20,7 @@ use Imagine\Image\Fill\FillInterface;
 use Imagine\Image\Fill\Gradient\Horizontal;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\ImagineInterface;
+use Imagine\Image\Metadata\DefaultMetadataReader;
 use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Palette\CMYK;
 use Imagine\Image\Palette\Color\ColorInterface;
@@ -34,6 +35,7 @@ use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\BandFormat;
 use Jcupitt\Vips\BlendMode;
 use Jcupitt\Vips\Direction;
+use Jcupitt\Vips\Exception;
 use Jcupitt\Vips\Exception as VipsException;
 use Jcupitt\Vips\Extend;
 use Jcupitt\Vips\ForeignTiffCompression;
@@ -96,7 +98,14 @@ class Image extends AbstractImage
             $new = $this->usePalette(new RGB());
             $this->vips = $new->getVips();
             $this->palette = $new->palette();
+            $this->layers = $new->layers();
         }
+    }
+
+    public function __clone()
+    {
+        parent::__clone();
+        $this->layers = new Layers($this);
     }
 
     /**
@@ -171,13 +180,9 @@ class Image extends AbstractImage
             }
         }
         try {
-            /*
-             * FIXME: Layers support
-             * if ($this->layers()->count() > 1) {
-             *   // Crop each layer separately
-             * } else {
-             */
-            $this->vips = $this->vips->crop($start->getX(), $start->getY(), $size->getWidth(), $size->getHeight());
+            $this->applyToLayers(function (VipsImage $vips) use ($size, $start): VipsImage {
+                return $vips->crop($start->getX(), $start->getY(), $size->getWidth(), $size->getHeight());
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Crop operation failed', $e->getCode(), $e);
         }
@@ -193,7 +198,9 @@ class Image extends AbstractImage
     public function flipHorizontally()
     {
         try {
-            $this->vips = $this->vips->flip(Direction::HORIZONTAL);
+            $this->applyToLayers(function (VipsImage $vips): VipsImage {
+                return $vips->flip(Direction::HORIZONTAL);
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Horizontal Flip operation failed', $e->getCode(), $e);
         }
@@ -209,7 +216,9 @@ class Image extends AbstractImage
     public function flipVertically()
     {
         try {
-            $this->vips = $this->vips->flip(Direction::VERTICAL);
+            $this->applyToLayers(function (VipsImage $vips): VipsImage {
+                return $vips->flip(Direction::VERTICAL);
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Vertical Flip operation failed', $e->getCode(), $e);
         }
@@ -234,7 +243,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function paste(ImageInterface $image, PointInterface $start)
+    public function paste(ImageInterface $image, PointInterface $start, $alpha = 100)
     {
         if (!$image instanceof self) {
             if (method_exists($image, "convertToVips")) {
@@ -311,24 +320,38 @@ class Image extends AbstractImage
     public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED)
     {
         try {
-            $vips = $this->vips;
-            $original_format = $vips->format;
-            if ($vips->hasAlpha()) {
-                $vips = $vips->premultiply();
-            }
-            $vips = $vips->resize($size->getWidth() / $vips->width, ['vscale' => $size->getHeight() / $vips->height]);
-            if ($vips->hasAlpha()) {
-                $vips = $vips->unpremultiply();
-                if ($vips->format != $original_format) {
-                    $vips = $vips->cast($original_format);
+            $this->applyToLayers(function (VipsImage $vips) use ($size): VipsImage {
+                $original_format = $vips->format;
+                if ($vips->hasAlpha()) {
+                    $vips = $vips->premultiply();
                 }
-            }
-            $this->vips = $vips;
+                $vips = $vips->resize($size->getWidth() / $vips->width, ['vscale' => $size->getHeight() / $vips->height]);
+                if ($vips->hasAlpha()) {
+                    $vips = $vips->unpremultiply();
+                    if ($vips->format != $original_format) {
+                        $vips = $vips->cast($original_format);
+                    }
+                }
+
+                return $vips;
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Resize operation failed', $e->getCode(), $e);
         }
 
         return $this;
+    }
+
+    public function applyToLayers(callable $callback)
+    {
+        $layers = $this->layers();
+        $n = count($layers);
+        for ($i = 0; $i < $n; ++$i) {
+            $image = $layers[$i];
+            $vips = $image->getVips();
+            $vips = $callback($vips);
+            $image->setVips($vips);
+        }
     }
 
     /**
@@ -340,35 +363,39 @@ class Image extends AbstractImage
     {
         $color = $background ? $background : $this->palette->color('fff');
         try {
-            switch ($angle) {
-                case 0:
-                case 360:
-                case -360:
-                    break;
-                case 90:
-                case -270:
-                    $this->vips = $this->vips->rot90();
-                    break;
-                case 180:
-                case -180:
-                    $this->vips = $this->vips->rot180();
-                    break;
-                case 270:
-                case -90:
-                    $this->vips = $this->vips->rot270();
-                    break;
-                default:
-                    if (!$this->vips->hasAlpha()) {
-                        //FIXME, alpha channel with Grey16 isn't doing well on rotation. there's only alpha in the end
-                        if (Interpretation::GREY16 !== $this->vips->interpretation) {
-                            $this->vips = $this->vips->bandjoin(255);
+            $this->applyToLayers(function (VipsImage $vips) use ($angle, $color): VipsImage {
+                switch ($angle) {
+                    case 0:
+                    case 360:
+                    case -360:
+                        break;
+                    case 90:
+                    case -270:
+                        $vips = $vips->rot90();
+                        break;
+                    case 180:
+                    case -180:
+                        $vips = $vips->rot180();
+                        break;
+                    case 270:
+                    case -90:
+                        $vips = $vips->rot270();
+                        break;
+                    default:
+                        if (!$vips->hasAlpha()) {
+                            //FIXME, alpha channel with Grey16 isn't doing well on rotation. there's only alpha in the end
+                            if (Interpretation::GREY16 !== $vips->interpretation) {
+                                $vips = $vips->bandjoin(255);
+                            }
                         }
-                    }
-                    if (version_compare(vips_version(), '8.6', '<')) {
-                        throw new RuntimeException('The rotate method for angles != 90, 180, 270 needs at least vips 8.6');
-                    }
-                    $this->vips = $this->vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color, $this->vips->bands)]);
-            }
+                        if (version_compare(vips_version(), '8.6', '<')) {
+                            throw new RuntimeException('The rotate method for angles != 90, 180, 270 needs at least vips 8.6');
+                        }
+                        $vips = $vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color, $vips->bands)]);
+                }
+
+                return $vips;
+            });
         } catch (VipsException $e) {
             throw new RuntimeException('Rotate operation failed. '.$e->getMessage(), $e->getCode(), $e);
         }
@@ -429,9 +456,14 @@ class Image extends AbstractImage
         $image = $this->prepareOutput($options);
         $vips = $image->getVips();
         $options = $this->applyImageOptions($vips, $options);
-
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
-
+        
+        if ($format === 'gif' && count($image->layers()) > 1) {
+            foreach($image->layers()->getResources() as $_k => $_v) {
+                if ($_k === 0) { continue; }
+                $vips = $vips->join($_v, "vertical");
+            }
+        }
         if ($method !== null) {
             try {
                 $saveMethod = $method . "_buffer";
@@ -571,8 +603,10 @@ class Image extends AbstractImage
         } catch (VipsException $e) {
             throw new RuntimeException('Error while getting image pixel color', $e->getCode(), $e);
         }
-
-        return $this->pixelToColor($pixel);
+        if (is_array($pixel)) {
+            return $this->pixelToColor($pixel);
+        }
+        throw new RuntimeException(sprintf('Error getting color at point. Was not an array.'));
     }
 
     /**
@@ -611,8 +645,6 @@ class Image extends AbstractImage
      */
     public function layers()
     {
-        //FIXME: implement actual layers, not just the first layer in vips
-
         return $this->layers;
     }
 
@@ -713,26 +745,82 @@ class Image extends AbstractImage
     public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = [])
     {
         if (null === $imagine) {
+            $oldMetaReader = null;
             if (class_exists('Imagick')) {
                 $imagine = new \Imagine\Imagick\Imagine();
             } else {
                 $imagine = new \Imagine\Gd\Imagine();
             }
+        } else {
+            $oldMetaReader = $imagine->getMetadataReader();
+
         }
 
-        return $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions));
+        // no need to reread meta data, saves lots of memory
+        $imagine->setMetadataReader(new DefaultMetadataReader());
+
+        $image = $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions));
+        // readd metadata
+        foreach ( $this->metadata() as $key => $value) {
+            $image->metadata()->offsetSet($key, $value);
+        }
+
+        if ($oldMetaReader !== null) {
+            $imagine->setMetadataReader($oldMetaReader);
+        }
+
+        // if there's only one layer, we can do an early return
+        if (1 == count($this->layers())) {
+            return $image;
+        }
+        $i = 0;
+        foreach ($this->layers()->getResources() as $res) {
+            if (0 == $i) {
+                ++$i;
+                continue;
+            }
+            $newLayer = $imagine->load($this->getImageStringForLoad($res));
+            $image->layers()->add($newLayer);
+            ++$i;
+        }
+        try {
+            // if there's a gif-delay option, set this
+            $delay = $this->vips->get('gif-delay');
+            $loop = $this->vips->get('gif-loop');
+            $image->layers()->animate('gif', $delay * 10, $loop);
+        } catch (Exception $e) {
+        }
+
+        return $image;
+    }
+
+    public function updatePalette()
+    {
+        $this->palette = Imagine::createPalette($this->vips);
     }
 
     protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
     {
         $defaultProfile = $this->getDefaultProfileForInterpretation($vips);
-        $vips = $vips->icc_transform(
-            VipsProfile::fromRawData($profile->data())->path(),
-            [
-                'embedded' => true,
-                'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
-            ]
-        );
+        try {
+            $vips = $vips->icc_transform(
+                VipsProfile::fromRawData($profile->data())->path(),
+                [
+                    'embedded' => true,
+                    'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
+                ]
+            );
+        } catch (Exception $e) {
+            // if there's an exception, usually something is wrong with the embedded profile
+            // try withou
+            $vips = $vips->icc_transform(
+                VipsProfile::fromRawData($profile->data())->path(),
+                [
+                    'embedded' => false,
+                    'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
+                ]
+            );
+        }
 
         return $vips;
     }
@@ -751,11 +839,6 @@ class Image extends AbstractImage
         $this->vips = $new->insert($this->vips, $start->getX(), $start->getY());
 
         return $this;
-    }
-
-    protected function updatePalette()
-    {
-        $this->palette = Imagine::createPalette($this->vips);
     }
 
     protected static function getInterpretation(PaletteInterface $palette)
@@ -975,6 +1058,12 @@ class Image extends AbstractImage
         } elseif ('tiff' == $format) {
             $saveOptions = $this->applySaveOptions([], $options);
             $method = 'tiffsave';
+        } elseif ('gif' == $format) {
+            $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
+            $method = 'magicksave';
+        } elseif ('jp2' == $format) {
+            $saveOptions = $this->applySaveOptions(['format' => 'jp2', 'quality' => $options['jp2_quality']], $options);
+            $method = 'magicksave';
         } else {
             // use magicksave, if available and possible
             // ppm in vips has some strange issues, save in fallback...
