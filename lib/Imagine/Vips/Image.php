@@ -50,6 +50,14 @@ class Image extends AbstractImage
     const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB.icm';
     const ICC_DEFAULT_PROFILE_BW = 'gray.icc';
     const ICC_DEFAULT_PROFILE_CMYK = 'cmyk.icm';
+    
+    public const OPTION_JPEG_QUALITY = 'jpeg_quality';
+    public const OPTION_WEBP_QUALITY = 'webp_quality';
+    public const OPTION_HEIF_QUALITY = 'heif_quality';
+    public const OPTION_WEBP_LOSSLESS = 'webp_lossless';
+    public const OPTION_PNG_COMPRESSION_LEVEL = 'png_compression_level';
+    public const OPTION_PNG_COMPRESSION_FILTER = 'png_compression_filter';
+
 
     /**
      * @var VipsImage
@@ -944,23 +952,23 @@ class Image extends AbstractImage
         $format = strtolower($format);
         $options['format'] = $format;
 
-        if (!isset($options['jpeg_quality']) && in_array($format, ['jpeg', 'jpg', 'pjpeg'], true)) {
-            $options['jpeg_quality'] = 92;
+        if (!isset($options[self::OPTION_JPEG_QUALITY]) && in_array($format, ['jpeg', 'jpg', 'pjpeg'], true)) {
+            $options[self::OPTION_JPEG_QUALITY] = 92;
         }
-        if (!isset($options['webp_quality']) && in_array($format, ['webp'], true)) {
-            $options['webp_quality'] = 80; // FIXME: correct value?
+        if (!isset($options[self::OPTION_WEBP_QUALITY]) && in_array($format, ['webp'], true)) {
+            $options[self::OPTION_WEBP_QUALITY] = 80; // FIXME: correct value?
         }
-        if (!isset($options['webp_lossless']) && in_array($format, ['webp'], true)) {
-            $options['webp_lossless'] = false;
+        if (!isset($options[self::OPTION_WEBP_LOSSLESS]) && in_array($format, ['webp'], true)) {
+            $options[self::OPTION_WEBP_LOSSLESS] = false;
         }
 
         if ('png' === $format) {
-            if (!isset($options['png_compression_level'])) {
-                $options['png_compression_level'] = 7;
+            if (!isset($options[self::OPTION_PNG_COMPRESSION_LEVEL])) {
+                $options[self::OPTION_PNG_COMPRESSION_LEVEL] = 7;
             }
             //FIXME: implement different png_compression_filter
-            if (!isset($options['png_compression_filter'])) {
-                $options['png_compression_filter'] = 5;
+            if (!isset($options[self::OPTION_PNG_COMPRESSION_FILTER])) {
+                $options[self::OPTION_PNG_COMPRESSION_FILTER] = 5;
             }
         }
         /* FIXME: do we need this?
@@ -1047,13 +1055,13 @@ class Image extends AbstractImage
         $saveOptions = [];
         if ('jpg' == $format || 'jpeg' == $format) {
 
-            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['jpeg_quality'], 'interlace' => true], $options);
+            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JPEG_QUALITY], 'interlace' => true], $options);
             $method = 'jpegsave';
         } elseif ('png' == $format) {
-            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'compression' => $options['png_compression_level']], $options);
+            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]], $options);
             $method = 'pngsave';
         } elseif ('webp' == $format) {
-            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options['webp_quality'], 'lossless' => $options['webp_lossless']], $options);
+            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_WEBP_QUALITY], 'lossless' => $options[self::OPTION_WEBP_LOSSLESS]], $options);
             $method = 'webpsave';
         } elseif ('tiff' == $format) {
             $saveOptions = $this->applySaveOptions([], $options);
@@ -1069,7 +1077,7 @@ class Image extends AbstractImage
             // ppm in vips has some strange issues, save in fallback...
             if ($format !== "ppm" && version_compare(vips_version(), '8.7.0', '>=')) {
                 if ('heic' == $format || 'heif' === $format) {
-                    $saveOptions = ['quality' => $options['heif_quality'], 'format' => $format];
+                    $saveOptions = ['quality' => $options[self::OPTION_HEIF_QUALITY], 'format' => $format];
                     $method = 'magicksave';
                 }
                 // if only the format option is set, we can use that, otherwise we fall back to the alternative
@@ -1089,8 +1097,8 @@ class Image extends AbstractImage
         $alt = $image->convertToAlternative();
         // set heif quality, if heif is asked for
         if ('heic' === $format || 'heif' === $format) {
-            if ($alt instanceof \Imagine\Imagick\Image && isset($options['heif_quality'])) {
-                $alt->getImagick()->setCompressionQuality($options['heif_quality']);
+            if ($alt instanceof \Imagine\Imagick\Image && isset($options[self::OPTION_HEIF_QUALITY])) {
+                $alt->getImagick()->setCompressionQuality($options[self::OPTION_HEIF_QUALITY]);
             }
         }
         return $alt;
