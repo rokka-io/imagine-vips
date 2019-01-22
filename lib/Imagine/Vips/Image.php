@@ -691,9 +691,8 @@ class Image extends AbstractImage
             $vipsNew = $this->applyProfile($palette->profile(), $vipsNew);
         }
 
-        $new->setVips($vipsNew, true);
-
-        return $new;
+        $this->setVips($vipsNew, true);
+        return $this;
     }
 
     /**
