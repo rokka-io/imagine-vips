@@ -52,6 +52,8 @@ class Image extends AbstractImage
     const ICC_DEFAULT_PROFILE_CMYK = 'cmyk.icm';
     
     public const OPTION_JPEG_QUALITY = 'jpeg_quality';
+    public const OPTION_PNG_QUALITY = 'png_quality';
+
     public const OPTION_WEBP_QUALITY = 'webp_quality';
     public const OPTION_HEIF_QUALITY = 'heif_quality';
     public const OPTION_WEBP_LOSSLESS = 'webp_lossless';
@@ -242,7 +244,6 @@ class Image extends AbstractImage
     public function strip()
     {
         $this->strip = true;
-
         return $this;
     }
 
@@ -954,6 +955,9 @@ class Image extends AbstractImage
         if (!isset($options[self::OPTION_JPEG_QUALITY]) && in_array($format, ['jpeg', 'jpg', 'pjpeg'], true)) {
             $options[self::OPTION_JPEG_QUALITY] = 92;
         }
+        if (!isset($options[self::OPTION_PNG_QUALITY]) && in_array($format, ['png'], true)) {
+            $options[self::OPTION_PNG_QUALITY] = 100; // don't do pngquant, if set to 100
+        }
         if (!isset($options[self::OPTION_WEBP_QUALITY]) && in_array($format, ['webp'], true)) {
             $options[self::OPTION_WEBP_QUALITY] = 80; // FIXME: correct value?
         }
@@ -1057,7 +1061,12 @@ class Image extends AbstractImage
             $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JPEG_QUALITY], 'interlace' => true], $options);
             $method = 'jpegsave';
         } elseif ('png' == $format) {
-            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]], $options);
+            $pngOptions =  ['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]];
+            if ($options[self::OPTION_PNG_QUALITY] < 100) {
+                $pngOptions['Q'] = $options[self::OPTION_PNG_QUALITY];
+                $pngOptions['palette'] = true;
+            }
+            $saveOptions = $this->applySaveOptions($pngOptions, $options);
             $method = 'pngsave';
         } elseif ('webp' == $format) {
             $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_WEBP_QUALITY], 'lossless' => $options[self::OPTION_WEBP_LOSSLESS]], $options);
