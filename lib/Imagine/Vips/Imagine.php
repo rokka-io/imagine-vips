@@ -75,9 +75,12 @@ class Imagine extends AbstractImagine
         $path = $this->checkPath($path);
 
         try {
-            $loadOptions = $this->getLoadOptions(VipsImage::findLoad($path), $loadOptions);
+            $loader = VipsImage::findLoad($path);
+            $loadOptions = $this->getLoadOptions($loader, $loadOptions);
             $vips = VipsImage::newFromFile($path, $loadOptions);
-
+            if ($loader === 'VipsForeignLoadTiffFile') {
+                $vips = $this->removeUnnecessaryAlphaChannels($vips);
+            }
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readFile($path));
         } catch (\Exception $e) {
             throw new RuntimeException(sprintf('Unable to open image %s', $path), $e->getCode(), $e);
@@ -100,8 +103,12 @@ class Imagine extends AbstractImagine
     public function load($string, $loadOptions = [])
     {
         try {
-            $loadOptions = $this->getLoadOptions(VipsImage::findLoadBuffer($string), $loadOptions);
+            $loader = VipsImage::findLoadBuffer($string);
+            $loadOptions = $this->getLoadOptions($loader, $loadOptions);
             $vips = VipsImage::newFromBuffer($string, '', $loadOptions);
+            if ($loader === 'VipsForeignLoadTiffBuffer') {
+                $vips = $this->removeUnnecessaryAlphaChannels($vips);
+            }
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readData($string));
         } catch (\Exception $e) {
             // sometimes we have files with colorspaces vips does not support (heic files for eaxample),
@@ -198,5 +205,23 @@ class Imagine extends AbstractImagine
         // FIXME: remove not allowed options
 
         return $options;
+    }
+
+    /**
+     * Some files (esp. tiff) can have more than one alpha layer.. We just remove all except one.
+     * Not sure, this is the right approach, but good enough for now.
+     *
+     * @param Image $vips
+     * @return Image
+     */
+    protected function removeUnnecessaryAlphaChannels($vips)
+    {
+        $lastVipsWithAlpha = $vips;
+
+        while ($vips->hasAlpha()) {
+            $lastVipsWithAlpha = $vips;
+            $vips = $vips->extract_band(0, ['n' => $vips->bands - 1]);
+        }
+        return $lastVipsWithAlpha;
     }
 }
