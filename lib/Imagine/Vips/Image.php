@@ -821,14 +821,18 @@ class Image extends AbstractImage
             );
         } catch (Exception $e) {
             // if there's an exception, usually something is wrong with the embedded profile
-            // try withou
-            $vips = $vips->icc_transform(
-                VipsProfile::fromRawData($profile->data())->path(),
-                [
-                    'embedded' => false,
-                    'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
-                ]
-            );
+            // try without
+            try {
+                $vips = $vips->icc_transform(
+                    VipsProfile::fromRawData($profile->data())->path(),
+                    [
+                        'embedded' => false,
+                        'input_profile' => __DIR__ . '/../../resources/colorprofiles/' . $defaultProfile,
+                    ]
+                );
+            } catch (Exception $e) {
+                throw new RuntimeException("icc_transform error. Message: " . $e->getMessage() . ". With defaultProfile: " . $defaultProfile);
+            }
         }
 
         return $vips;
