@@ -468,6 +468,7 @@ class Image extends AbstractImage
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
         
         if ($format === 'gif' && count($image->layers()) > 1) {
+            $vips->set('page-height', $vips->height);
             foreach($image->layers()->getResources() as $_k => $_v) {
                 if ($_k === 0) { continue; }
                 $vips = $vips->join($_v, "vertical");
