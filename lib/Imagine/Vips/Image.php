@@ -1079,6 +1079,9 @@ class Image extends AbstractImage
         } elseif ('tiff' == $format) {
             $saveOptions = $this->applySaveOptions([], $options);
             $method = 'tiffsave';
+        } elseif (('heif' == $format || 'heic' == $format) && version_compare(vips_version(), '8.8.0', '>=')) {
+            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_HEIF_QUALITY]], $options);
+            $method = 'heifsave';
         } elseif ('gif' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
             $method = 'magicksave';
