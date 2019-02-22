@@ -13,6 +13,7 @@
     object first, resulting in much better performance. 
   * Add possibility for individual vips save options 
   * Replace colorprofile with free ones.
+  * Support for animated webp, needs vips 8.8.
 
 ### 0.1.0 (2017-12-06)
 

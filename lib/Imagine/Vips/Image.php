@@ -467,8 +467,14 @@ class Image extends AbstractImage
         $options = $this->applyImageOptions($vips, $options);
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
         
-        if ($format === 'gif' && count($image->layers()) > 1) {
+        if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
+                || $format === 'gif')
+            && count($image->layers()) > 1) {
             $vips->set('page-height', $vips->height);
+            if ($format === 'webp') {
+                //webp has a 10 multiplier. Or looks like it, at least
+                $vips->set('gif-delay', $vips->get('gif-delay') * 10);
+            }
             foreach($image->layers()->getResources() as $_k => $_v) {
                 if ($_k === 0) { continue; }
                 $vips = $vips->join($_v, "vertical");
@@ -909,7 +915,6 @@ class Image extends AbstractImage
         }
 
         return $this;
-        // FIXME: layer support, merge them if $options['animated'] != true or $options['flatten'] == true
     }
 
     /**
