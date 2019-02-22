@@ -4,7 +4,7 @@
 
   * BREAKING CHANGE: Based on imagine 1.1.0
   * Added support for layers. Animated GIFs should now work without imagick, but needs vips 8.7.
-  * Add support for 'heif_quality' (only useful if your imagemagick supports heif).
+  * Add support for 'heif_quality' (only useful if your imagemagick or vips 8.8 supports heif).
   * Add support for 'jp2_quality' (only useful if your imagemagick supports jpeg2000).
   * Add support for 'png_quality' to define quality of pngquant (only useful if vips is compiled with libimagequant).
     If set to 100, no lossy conversion is applied (default).
