@@ -2,7 +2,7 @@
  
 This package provides a [libvips](https://github.com/libvips/libvips) integration for [Imagine](https://imagine.readthedocs.io/en/latest/). The [VIPS image processing system](https://libvips.github.io/libvips/) is a very fast, multi-threaded image processing library with low memory needs.
 
-Version 8.6 or higher of libvips is highly recommended. `paste` and `rotate` by angles other than multipliers of 90 are not supported with older versions of libvips.
+Version 8.7 or higher of libvips is highly recommended. `paste` and `rotate` by angles other than multipliers of 90 are not supported with older versions of libvips.
  
 You also need the [php-vips-ext](https://github.com/libvips/php-vips-ext) extension version 1.0.8 or higher (you need to install that manually) and the [php-vips](https://github.com/libvips/php-vips) classes (automatically installed by composer)
 

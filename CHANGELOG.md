@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 0.9.0 (unreleased) 
+### 0.9.0 (2019-03-07)
 
   * BREAKING CHANGE: Based on imagine 1.1.0
   * Added support for layers. Animated GIFs should now work without imagick, but needs vips 8.7.
