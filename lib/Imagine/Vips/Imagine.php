@@ -126,7 +126,7 @@ class Imagine extends AbstractImagine
                 throw new RuntimeException('Image is defective, decoding aborted', $e->getCode(), $e);
             }
 
-            throw new RuntimeException('Could not load image from string', $e->getCode(), $e);
+            throw new RuntimeException('Could not load image from string. Message: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
