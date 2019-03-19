@@ -204,6 +204,17 @@ class Imagine extends AbstractImagine
         $options = array_merge($loadOptions, $options);
         // FIXME: remove not allowed options
 
+        if (isset($options['shrink'])) {
+            switch ($loader) {
+                case 'VipsForeignLoadJpegFile':
+                case 'VipsForeignLoadJpegBuffer':
+                case 'VipsForeignLoadWebpFile':
+                case 'VipsForeignLoadWebpBuffer':
+                    break;
+                default:
+                    unset($options['shrink']);
+               }
+        }
         return $options;
     }
 
