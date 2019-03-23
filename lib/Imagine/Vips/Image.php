@@ -436,6 +436,10 @@ class Image extends AbstractImage
                 if ($method !== 'magicksave') {
                     throw $e;
                 }
+                // if vips can't read it with libMagick, the alternatives can't either. throw an error
+                if (strpos($e->getMessage(),'libMagick error: no decode delegate for this image format') > 0) {
+                    throw new NotSupportedException("Image format is not supported.", 0,$e);
+                }
             }
         }
         $alt = $this->convertToAlternativeForSave($options, $image, $format);
@@ -489,6 +493,11 @@ class Image extends AbstractImage
                 // installed
                 if ($method !== 'magicksave') {
                     throw $e;
+                }
+
+                // if vips can't read it with libMagick, the alternatives can't either. throw an error
+                if (strpos($e->getMessage(),'libMagick error: no decode delegate for this image format') > 0) {
+                    throw new NotSupportedException("Image format is not supported.", 0,$e);
                 }
             }
         }
