@@ -426,6 +426,7 @@ class Image extends AbstractImage
         $format = $options['format'];
 
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
+        $vips = $this->joinMultilayer($format, $image, $vips);
 
         if ($method !== null) {
             try {
@@ -470,20 +471,8 @@ class Image extends AbstractImage
         $vips = $image->getVips();
         $options = $this->applyImageOptions($vips, $options);
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
-        
-        if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
-                || $format === 'gif')
-            && count($image->layers()) > 1) {
-            $vips->set('page-height', $vips->height);
-            if ($format === 'webp') {
-                //webp has a 10 multiplier. Or looks like it, at least
-                $vips->set('gif-delay', $vips->get('gif-delay') * 10);
-            }
-            foreach($image->layers()->getResources() as $_k => $_v) {
-                if ($_k === 0) { continue; }
-                $vips = $vips->join($_v, "vertical");
-            }
-        }
+
+        $vips = $this->joinMultilayer($format, $image, $vips);
         if ($method !== null) {
             try {
                 $saveMethod = $method . "_buffer";
@@ -1133,4 +1122,35 @@ class Image extends AbstractImage
         }
         return $alt;
     }
+
+    /**
+     * @param $format
+     * @param \Imagine\Vips\Image $image
+     * @param \Jcupitt\Vips\Image $vips
+     *
+     * @return \Jcupitt\Vips\Image
+     * @throws \Imagine\Exception\OutOfBoundsException
+     * @throws \Imagine\Exception\RuntimeException
+     * @throws \Jcupitt\Vips\Exception
+     */
+    private function joinMultilayer($format, Image $image, VipsImage $vips): \Jcupitt\Vips\Image {
+        if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
+                || $format === 'gif')
+            && count($image->layers()) > 1) {
+            $vips->set('page-height', $vips->height);
+
+            // $vips->set('gif-delay', 3);
+            if ($format === 'webp') {
+                //webp has a 10 multiplier. Or looks like it, at least
+                $vips->set('gif-delay', $vips->get('gif-delay') * 10);
+            }
+            foreach ($image->layers()->getResources() as $_k => $_v) {
+                if ($_k === 0) {
+                    continue;
+                }
+                $vips = $vips->join($_v, "vertical");
+            }
+        }
+        return $vips;
+}
 }
