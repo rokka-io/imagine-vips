@@ -41,14 +41,17 @@ class Layers extends AbstractLayers
      */
     private $count = 0;
 
-    public function __construct(Image $image, ?array $resources = null)
+    public function __construct(Image $image, Layers $layers = null)
     {
         $this->image = $image;
 
         $vips = $image->getVips();
         //try extracting layers
-        if ($resources !== null) {
-            $this->resources = $resources;
+        if ($layers !== null) {
+            $this->layers = $layers->layers;
+            $this->resources = $layers->resources;
+            $this->count = count($layers->resources) + count($this->layers);
+
         } else {
             try {
                 if ($vips->get('page-height')) {
@@ -63,12 +66,12 @@ class Layers extends AbstractLayers
             } catch (Exception $e) {
                 $this->resources[0] = $vips;
             }
+            $this->count = count($this->resources);
+            //always set the first layer
+            $this->layers[0] = $this->image;
+            // we don't need it, it's in $this->image
+            unset( $this->resources[0]);
         }
-        $this->count = count($this->resources);
-        //always set the first layer
-        $this->layers[0] = $this->image;
-        // we don't need it, it's in $this->image
-        unset( $this->resources[0]);
     }
 
     /**
