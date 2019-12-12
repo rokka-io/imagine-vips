@@ -196,6 +196,11 @@ class Imagine extends AbstractImagine
             case 'VipsForeignLoadJpegBuffer':
                 $options['autorotate'] = true;
                 break;
+            case 'VipsForeignLoadHeifFile':
+            case 'VipsForeignLoadHeifBuffer':
+                $options['autorotate'] = true;
+                $options['n'] = -1; // not sure this should be enabled by default, to discuss
+                break;
             case 'VipsForeignLoadGifFile':
             case 'VipsForeignLoadGifBuffer':
                 $options['n'] = -1; // not sure this should be enabled by default, to discuss
