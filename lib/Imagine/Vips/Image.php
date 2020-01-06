@@ -137,6 +137,17 @@ class Image extends AbstractImage
     }
 
     /**
+     * Copies the image, mainly needed when manipulation image metadata
+     *
+     * @return VipsImage
+     */
+    public function vipsCopy()
+    {
+         $this->vips = $this->vips->copy();
+         return $this->vips;
+    }
+
+    /**
      * @param VipsImage $vips
      * @param bool      $updatePalette In case the palette should changed and should be updated
      *
@@ -686,6 +697,7 @@ class Image extends AbstractImage
 
         try {
             //try to remove icc-profile-data, not sure that's always correct, for srgb and 'bw' it seems to.
+            $vipsNew = $vipsNew->copy();
             $vipsNew->remove('icc-profile-data');
         } catch (VipsException $e) {
         }
@@ -1137,6 +1149,7 @@ class Image extends AbstractImage
         if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
                 || $format === 'gif')
             && count($image->layers()) > 1) {
+            $vips = $vips->copy();
             $vips->set('page-height', $vips->height);
 
             // $vips->set('gif-delay', 3);

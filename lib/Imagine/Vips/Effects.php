@@ -89,6 +89,7 @@ class Effects implements EffectsInterface
                 return $vips;
             });
             try {
+                $this->image->vipsCopy();
                 $this->image->getVips()->remove('icc-profile-data');
             } catch (\Jcupitt\Vips\Exception $e) {
                 //throws an exception if not existing, so just move on

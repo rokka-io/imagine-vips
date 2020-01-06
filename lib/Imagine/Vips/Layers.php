@@ -86,7 +86,7 @@ class Layers extends AbstractLayers
      */
     public function animate($format, $delay, $loops)
     {
-        $vips = $this->image->getVips();
+        $vips = $this->image->vipsCopy();
         $vips->set('gif-delay', $delay );
         $vips->set('gif-loop', $loops );
 
@@ -189,6 +189,7 @@ class Layers extends AbstractLayers
         }
         $this->count++;
         if ($this->count === 2) {
+            $this->image->vipsCopy();
             $this->image->getVips()->set('page-height', $this->image->getVips()->height);
         }
     }
