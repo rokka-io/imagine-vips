@@ -15,6 +15,7 @@ use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
 use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Point;
+use Jcupitt\Vips\BlendMode;
 use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
@@ -105,10 +106,16 @@ class Layers extends AbstractLayers
                 ++$i;
                 continue;
             }
-            $merged = $merged->paste($this->offsetGet($i), new Point(0, 0));
+            if (class_exists('\Jcupitt\Vips\BlendMode')) {
+                // for php-vips > 1.0.2
+                $merged = $merged->composite([$merged], [BlendMode::OVER])->copyMemory();
+            } else {
+                // for php-vips <= 1.0.2
+                $merged = $merged->composite([$merged, $merged], 2)->copyMemory();
+            }
 
             $frame = clone $merged;
-            $this->layers[$i] = $frame;
+            $this->resources[$i] = $frame;
             ++$i;
         }
     }
