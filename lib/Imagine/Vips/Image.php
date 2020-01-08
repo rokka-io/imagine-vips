@@ -50,7 +50,7 @@ class Image extends AbstractImage
     const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB.icm';
     const ICC_DEFAULT_PROFILE_BW = 'gray.icc';
     const ICC_DEFAULT_PROFILE_CMYK = 'cmyk.icm';
-    
+
     public const OPTION_JPEG_QUALITY = 'jpeg_quality';
     public const OPTION_PNG_QUALITY = 'png_quality';
 
@@ -511,7 +511,7 @@ class Image extends AbstractImage
     public function interlace($scheme)
     {
         //FIXME: implement in vips
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
     /**
@@ -520,7 +520,7 @@ class Image extends AbstractImage
     public function draw()
     {
         //FIXME: implement in vips
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
     /**
@@ -602,7 +602,7 @@ class Image extends AbstractImage
     public function fill(FillInterface $fill)
     {
         //FIXME: implement in vips
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
     /**
@@ -611,7 +611,7 @@ class Image extends AbstractImage
     public function histogram()
     {
         //FIXME: implement in vips
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
     /**
@@ -1165,5 +1165,5 @@ class Image extends AbstractImage
             }
         }
         return $vips;
-}
+    }
 }

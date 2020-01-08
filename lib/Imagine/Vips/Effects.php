@@ -10,6 +10,7 @@
 namespace Imagine\Vips;
 
 use Imagine\Effects\EffectsInterface;
+use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\Palette\Color\ColorInterface;
 use Imagine\Utils\Matrix;
@@ -105,7 +106,7 @@ class Effects implements EffectsInterface
      */
     public function colorize(ColorInterface $color)
     {
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
     /**
@@ -148,12 +149,12 @@ class Effects implements EffectsInterface
 
     public function brightness($brightness)
     {
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter. You can use modulate() instead.');
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter. You can use modulate() instead.');
     }
 
     public function convolve(Matrix $matrix)
     {
-        throw new \RuntimeException(__METHOD__.' not implemented yet in the vips adapter.');
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
     /**
