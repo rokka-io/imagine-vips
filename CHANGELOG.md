@@ -1,5 +1,14 @@
 # CHANGELOG
 
+### 0.9.1 (2020-01-08)
+
+  * Throw a proper NotSupportedException (thanks to @alexander-schranz) 
+  * Get rid of some warnings when using vips 8.9.
+  * Autorotate HEIF images on load.
+  * Support animated gif save to file.
+  * Throw an early error, if magicksave can't save an image.
+  * Remove 'shrink' options, when not supported by a vips loader.
+
 ### 0.9.0 (2019-03-07)
 
   * BREAKING CHANGE: Based on imagine 1.1.0
