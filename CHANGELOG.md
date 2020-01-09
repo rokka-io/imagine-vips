@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### 0.9.2 (2020-01-09)
+
+  * Improved coalesce for animated gifs
+  * Added Image::isOpaque($vips)
+
 ### 0.9.1 (2020-01-08)
 
   * Throw a proper NotSupportedException (thanks to @alexander-schranz) 

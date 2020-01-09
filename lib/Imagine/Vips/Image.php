@@ -265,6 +265,10 @@ class Image extends AbstractImage
      */
     public function paste(ImageInterface $image, PointInterface $start, $alpha = 100)
     {
+        if (version_compare(vips_version(), '8.6', '<')) {
+            throw new RuntimeException('The paste method needs at least vips 8.6');
+        }
+
         if (!$image instanceof self) {
             if (method_exists($image, "convertToVips")) {
                 $image = $image->convertToVips();
@@ -287,18 +291,7 @@ class Image extends AbstractImage
         }
         $image = $image->extendImage($this->getSize(), $start)->getVips();
 
-        if (version_compare(vips_version(), '8.6', '<')) {
-            throw new RuntimeException('The paste method needs at least vips 8.6');
-        }
-        // this class is new for vips 8.6 and in the dev-master branch of vips-ext
-        // once we can require that via composer.json, we can remove this if and the else clause
-        if (class_exists('\Jcupitt\Vips\BlendMode')) {
-            // for php-vips > 1.0.2
-            $this->vips = $this->vips->composite([$image], [BlendMode::OVER])->copyMemory();
-        } else {
-            // for php-vips <= 1.0.2
-            $this->vips = $this->vips->composite([$this->vips, $image], 2)->copyMemory();
-        }
+        $this->vips = $this->vips->composite([$image], [BlendMode::OVER])->copyMemory();
 
         return $this;
     }
@@ -853,6 +846,13 @@ class Image extends AbstractImage
 
         return $vips;
     }
+    
+    public static function isOpaque(VipsImage $vips) {
+        if (!$vips->hasAlpha()) {
+            return true;
+        }
+        return ((int) $vips->extract_band($vips->bands - 1)->min() === 255);
+    }
 
     protected function extendImage(BoxInterface $box, PointInterface $start)
     {
@@ -1149,10 +1149,12 @@ class Image extends AbstractImage
         if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
                 || $format === 'gif')
             && count($image->layers()) > 1) {
-            $vips = $vips->copy();
-            $vips->set('page-height', $vips->height);
 
-            // $vips->set('gif-delay', 3);
+            $vips = $vips->copy();
+            $height = $vips->height;
+            $width = $vips->width;
+            $vips->set('page-height', $height);
+
             if ($format === 'webp') {
                 //webp has a 10 multiplier. Or looks like it, at least
                 $vips->set('gif-delay', $vips->get('gif-delay') * 10);
@@ -1161,7 +1163,11 @@ class Image extends AbstractImage
                 if ($_k === 0) {
                     continue;
                 }
-                $vips = $vips->join($_v, "vertical");
+                // make frame the same size as the original, if height is not the same (if width is not the same, join will take care of it
+                if ($_v->height !== $height) {
+                    $_v = $_v->embed(0, 0, $width, $height, ['extend' => Extend::BACKGROUND]);
+                }
+                $vips = $vips->join($_v, "vertical", ["expand" => true]);
             }
         }
         return $vips;

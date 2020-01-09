@@ -15,6 +15,7 @@ use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
 use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Point;
+use Jcupitt\Vips\BlendMode;
 use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
@@ -99,16 +100,26 @@ class Layers extends AbstractLayers
     public function coalesce()
     {
         $merged = $this->extractAt(0)->getVips();
+        $width = $merged->width;
+        $height = $merged->height;
         $i = 0;
         foreach ($this->getResources() as $res) {
             if (0 == $i) {
                 ++$i;
                 continue;
             }
-            $merged = $merged->paste($this->offsetGet($i), new Point(0, 0));
+
+            // if width and height are the same and it is opaque, we don't have to composite
+            if (($res->width === $width && $res->height === $height) && Image::isOpaque($res)) {
+                ++$i;
+                continue;
+            }
+
+            $merged = $merged->composite([$res], [BlendMode::OVER])->copyMemory();
 
             $frame = clone $merged;
-            $this->layers[$i] = $frame;
+            unset($this->layers[$i]);
+            $this->resources[$i] = $frame;
             ++$i;
         }
     }
