@@ -846,6 +846,13 @@ class Image extends AbstractImage
 
         return $vips;
     }
+    
+    public static function isOpaque(VipsImage $vips) {
+        if (!$vips->hasAlpha()) {
+            return true;
+        }
+        return ((int) $vips->extract_band($vips->bands - 1)->min() === 255);
+    }
 
     protected function extendImage(BoxInterface $box, PointInterface $start)
     {

@@ -108,8 +108,9 @@ class Layers extends AbstractLayers
                 ++$i;
                 continue;
             }
-            // if width and height are the same, we don't have to composite
-            if ($res->width === $width && $res->height === $height) {
+
+            // if width and height are the same and it is opaque, we don't have to composite
+            if (($res->width === $width && $res->height === $height) && Image::isOpaque($res)) {
                 ++$i;
                 continue;
             }
