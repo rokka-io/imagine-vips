@@ -100,21 +100,24 @@ class Layers extends AbstractLayers
     public function coalesce()
     {
         $merged = $this->extractAt(0)->getVips();
+        $width = $merged->width;
+        $height = $merged->height;
         $i = 0;
         foreach ($this->getResources() as $res) {
             if (0 == $i) {
                 ++$i;
                 continue;
             }
-            if (class_exists('\Jcupitt\Vips\BlendMode')) {
-                // for php-vips > 1.0.2
-                $merged = $merged->composite([$merged], [BlendMode::OVER])->copyMemory();
-            } else {
-                // for php-vips <= 1.0.2
-                $merged = $merged->composite([$merged, $merged], 2)->copyMemory();
+            // if width and height are the same, we don't have to composite
+            if ($res->width === $width && $res->height === $height) {
+                ++$i;
+                continue;
             }
 
+            $merged = $merged->composite([$res], [BlendMode::OVER])->copyMemory();
+
             $frame = clone $merged;
+            unset($this->layers[$i]);
             $this->resources[$i] = $frame;
             ++$i;
         }
