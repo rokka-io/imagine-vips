@@ -20,6 +20,9 @@ use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
 {
+
+    private const DEFAULT_GIF_DELAY = 100;
+
     /**
      * @var Image
      */
@@ -240,6 +243,74 @@ class Layers extends AbstractLayers
 
         }
         return $resources;
+    }
+
+    /**
+     * @return array
+     * @throws \Imagine\Exception\RuntimeException
+     */
+    private function getDelays() {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->getVips();
+        try {
+            return $vips->get('delay');
+        } catch (\Exception $e) {
+            $delays = array_fill(0,count($this), self::DEFAULT_GIF_DELAY);
+            $vips->set('delay', $delays);
+            return $delays;
+        }
+    }
+
+    /**
+     * Gets delay in milliseconds for a single frame
+     *
+     * @return int  Delay in miliseconds
+     * @throws \Imagine\Exception\RuntimeException
+     */
+    public function getDelay($index) {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->getVips();
+        try {
+            $delays = $this->getDelays();
+            if (isset($delays[$index])) {
+               return $delays[$index];
+            }
+            return self::DEFAULT_GIF_DELAY;
+        } catch (\Exception $e) {
+            return self::DEFAULT_GIF_DELAY;
+        }
+    }
+
+    /**
+     * Sets delay for a single frame
+     *
+     * @param $index int Frame number
+     * @param $delay int Delay in miliseconds
+     *
+     * @throws \Imagine\Exception\NotSupportedException
+     * @throws \Imagine\Exception\RuntimeException
+     * @throws \Jcupitt\Vips\Exception
+     */
+    public function setDelay($index, $delay) {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->getVips();
+        $delays = $this->getDelays();
+        $oldValue = self::DEFAULT_GIF_DELAY;
+        if (isset($delays[$index])) {
+            $oldValue = $delays[$index];
+        }
+        if ($oldValue != $delay) {
+            $delays[$index] = $delay;
+            $vips = $vips->copy();
+            $vips->set('delay', $delays);
+            $this->image->setVips($vips);
+        }
     }
 
     /**
