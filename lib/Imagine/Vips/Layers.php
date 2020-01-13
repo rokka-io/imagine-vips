@@ -88,7 +88,11 @@ class Layers extends AbstractLayers
     public function animate($format, $delay, $loops)
     {
         $vips = $this->image->vipsCopy();
-        $vips->set('gif-delay', $delay );
+        if (version_compare(vips_version(), '8.9', '<')) {
+            $vips->set('gif-delay', $delay / 10);
+        } else {
+            $vips->set('delay', array_fill(0, count($this), $delay));
+        }
         $vips->set('gif-loop', $loops );
 
         return $this;

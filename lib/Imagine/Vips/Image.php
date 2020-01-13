@@ -1155,10 +1155,7 @@ class Image extends AbstractImage
             $width = $vips->width;
             $vips->set('page-height', $height);
 
-            if ($format === 'webp') {
-                //webp has a 10 multiplier. Or looks like it, at least
-                $vips->set('gif-delay', $vips->get('gif-delay') * 10);
-            }
+
             foreach ($image->layers()->getResources() as $_k => $_v) {
                 if ($_k === 0) {
                     continue;
