@@ -97,7 +97,10 @@ class Layers extends AbstractLayers
             $vips->set('delay', array_fill(0, count($this), $delay));
         }
         $vips->set('gif-loop', $loops );
-
+        if($vips->typeof('page-height') === 0) {
+            $vips->set("page-height", (int) ($vips->height / count($this)));
+        }
+        $this->vips = $vips;
         return $this;
     }
 
