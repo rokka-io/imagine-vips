@@ -1098,14 +1098,7 @@ class Image extends AbstractImage
         } elseif ('gif' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
             if($this->vips->typeof('delay') === 0) {
-  /*              $this->vipsCopy();
-                $this->vips->set("delay", [1]);
-                if($this->vips->typeof('page-height') === 0) {
-                    $this->vips->set("page-height", (int) $this->vips->height / count($this->layers()));
-                }
-*/
-                $this->layers()->animate("gif", 100, 0);
-
+                $this->layers()->animate('gif', Layers::DEFAULT_GIF_DELAY, 0);
             }
             $method = 'magicksave';
         } elseif ('jp2' == $format) {

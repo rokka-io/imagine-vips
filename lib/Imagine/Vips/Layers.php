@@ -21,7 +21,7 @@ use Jcupitt\Vips\Exception;
 class Layers extends AbstractLayers
 {
 
-    private const DEFAULT_GIF_DELAY = 100;
+    public const DEFAULT_GIF_DELAY = 100;
 
     /**
      * @var Image
