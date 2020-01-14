@@ -249,10 +249,12 @@ class Layers extends AbstractLayers
     }
 
     /**
-     * @return array
+     * Returns the delays in milliseconds per frame as array (or null, if not set yet)
+     *
+     * @return array|null
      * @throws \Imagine\Exception\RuntimeException
      */
-    private function getDelays() {
+    public function getDelays() {
         if (version_compare(vips_version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
@@ -260,16 +262,29 @@ class Layers extends AbstractLayers
         try {
             return $vips->get('delay');
         } catch (\Exception $e) {
-            $delays = array_fill(0,count($this), self::DEFAULT_GIF_DELAY);
-            $vips->set('delay', $delays);
-            return $delays;
+            return null;
         }
+    }
+
+    /**
+     * Sets the delays for all the frames in an animated image
+     *
+     * @param int[] $delays
+     *
+     * @throws \Jcupitt\Vips\Exception
+     */
+    public function setDelays($delays) {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->vipsCopy();
+        $vips->set('delay', $delays);
     }
 
     /**
      * Gets delay in milliseconds for a single frame
      *
-     * @return int  Delay in miliseconds
+     * @return int|null  Delay in miliseconds
      * @throws \Imagine\Exception\RuntimeException
      */
     public function getDelay($index) {
@@ -279,12 +294,15 @@ class Layers extends AbstractLayers
         $vips = $this->image->getVips();
         try {
             $delays = $this->getDelays();
+            if ($delays === null) {
+                return null;
+            }
             if (isset($delays[$index])) {
                return $delays[$index];
             }
-            return self::DEFAULT_GIF_DELAY;
+            return null;
         } catch (\Exception $e) {
-            return self::DEFAULT_GIF_DELAY;
+            return null;
         }
     }
 
@@ -304,15 +322,17 @@ class Layers extends AbstractLayers
         }
         $vips = $this->image->getVips();
         $delays = $this->getDelays();
-        $oldValue = self::DEFAULT_GIF_DELAY;
+        if ($delays === null) {
+            $delays = array_fill(0,count($this), self::DEFAULT_GIF_DELAY);
+            $this->setDelays($delays);
+        }
+        $oldValue = null;
         if (isset($delays[$index])) {
             $oldValue = $delays[$index];
         }
         if ($oldValue != $delay) {
             $delays[$index] = $delay;
-            $vips = $vips->copy();
-            $vips->set('delay', $delays);
-            $this->image->setVips($vips);
+            $this->setDelays($delays);
         }
     }
 
