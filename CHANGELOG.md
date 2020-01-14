@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### 0.10.0 (2020-01-14)
+
+  * Improved handling of animated gifs and webp
+  * Possibility to define delay per frame with vips 8.9 (`Layers::setDelay($index, $delay)` et al.) 
+
 ### 0.9.2 (2020-01-09)
 
   * Improved coalesce for animated gifs

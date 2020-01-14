@@ -425,12 +425,11 @@ class Image extends AbstractImage
     {
         /** @var Image $image */
         $image = $this->prepareOutput($options);
-        $vips = $image->getVips();
-        $options = $this->applyImageOptions($vips, $options, $path);
+        $options = $this->applyImageOptions($image->getVips(), $options, $path);
         $format = $options['format'];
 
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
-        $vips = $this->joinMultilayer($format, $image, $vips);
+        $vips = $this->joinMultilayer($format, $image);
 
         if ($method !== null) {
             try {
@@ -472,11 +471,10 @@ class Image extends AbstractImage
         $options['format'] = $format;
         /** @var Image $image */
         $image = $this->prepareOutput($options);
-        $vips = $image->getVips();
-        $options = $this->applyImageOptions($vips, $options);
+        $options = $this->applyImageOptions($image->getVips(), $options);
         list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
 
-        $vips = $this->joinMultilayer($format, $image, $vips);
+        $vips = $this->joinMultilayer($format, $image);
         if ($method !== null) {
             try {
                 $saveMethod = $method . "_buffer";
@@ -1099,6 +1097,9 @@ class Image extends AbstractImage
             $method = 'heifsave';
         } elseif ('gif' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
+            if($this->vips->typeof('delay') === 0) {
+                $this->layers()->animate('gif', Layers::DEFAULT_GIF_DELAY, 0);
+            }
             $method = 'magicksave';
         } elseif ('jp2' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'jp2', 'quality' => $options['jp2_quality']], $options);
@@ -1138,14 +1139,14 @@ class Image extends AbstractImage
     /**
      * @param $format
      * @param \Imagine\Vips\Image $image
-     * @param \Jcupitt\Vips\Image $vips
      *
      * @return \Jcupitt\Vips\Image
      * @throws \Imagine\Exception\OutOfBoundsException
      * @throws \Imagine\Exception\RuntimeException
      * @throws \Jcupitt\Vips\Exception
      */
-    private function joinMultilayer($format, Image $image, VipsImage $vips): \Jcupitt\Vips\Image {
+    private function joinMultilayer($format, Image $image): \Jcupitt\Vips\Image {
+        $vips = $this->getVips();
         if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
                 || $format === 'gif')
             && count($image->layers()) > 1) {
@@ -1155,10 +1156,7 @@ class Image extends AbstractImage
             $width = $vips->width;
             $vips->set('page-height', $height);
 
-            if ($format === 'webp') {
-                //webp has a 10 multiplier. Or looks like it, at least
-                $vips->set('gif-delay', $vips->get('gif-delay') * 10);
-            }
+
             foreach ($image->layers()->getResources() as $_k => $_v) {
                 if ($_k === 0) {
                     continue;

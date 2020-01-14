@@ -20,6 +20,9 @@ use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
 {
+
+    public const DEFAULT_GIF_DELAY = 100;
+
     /**
      * @var Image
      */
@@ -88,9 +91,16 @@ class Layers extends AbstractLayers
     public function animate($format, $delay, $loops)
     {
         $vips = $this->image->vipsCopy();
-        $vips->set('gif-delay', $delay );
+        if (version_compare(vips_version(), '8.9', '<')) {
+            $vips->set('gif-delay', $delay / 10);
+        } else {
+            $vips->set('delay', array_fill(0, count($this), $delay));
+        }
         $vips->set('gif-loop', $loops );
-
+        if($vips->typeof('page-height') === 0) {
+            $vips->set("page-height", (int) ($vips->height / count($this)));
+        }
+        $this->vips = $vips;
         return $this;
     }
 
@@ -236,6 +246,94 @@ class Layers extends AbstractLayers
 
         }
         return $resources;
+    }
+
+    /**
+     * Returns the delays in milliseconds per frame as array (or null, if not set yet)
+     *
+     * @return array|null
+     * @throws \Imagine\Exception\RuntimeException
+     */
+    public function getDelays() {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->getVips();
+        try {
+            return $vips->get('delay');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Sets the delays for all the frames in an animated image
+     *
+     * @param int[] $delays
+     *
+     * @throws \Jcupitt\Vips\Exception
+     */
+    public function setDelays($delays) {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->vipsCopy();
+        $vips->set('delay', $delays);
+    }
+
+    /**
+     * Gets delay in milliseconds for a single frame
+     *
+     * @return int|null  Delay in miliseconds
+     * @throws \Imagine\Exception\RuntimeException
+     */
+    public function getDelay($index) {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->getVips();
+        try {
+            $delays = $this->getDelays();
+            if ($delays === null) {
+                return null;
+            }
+            if (isset($delays[$index])) {
+               return $delays[$index];
+            }
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Sets delay for a single frame
+     *
+     * @param $index int Frame number
+     * @param $delay int Delay in miliseconds
+     *
+     * @throws \Imagine\Exception\NotSupportedException
+     * @throws \Imagine\Exception\RuntimeException
+     * @throws \Jcupitt\Vips\Exception
+     */
+    public function setDelay($index, $delay) {
+        if (version_compare(vips_version(), '8.9', '<')) {
+            throw new RuntimeException('This feature needs at least vips 8.9');
+        }
+        $vips = $this->image->getVips();
+        $delays = $this->getDelays();
+        if ($delays === null) {
+            $delays = array_fill(0,count($this), self::DEFAULT_GIF_DELAY);
+            $this->setDelays($delays);
+        }
+        $oldValue = null;
+        if (isset($delays[$index])) {
+            $oldValue = $delays[$index];
+        }
+        if ($oldValue != $delay) {
+            $delays[$index] = $delay;
+            $this->setDelays($delays);
+        }
     }
 
     /**
