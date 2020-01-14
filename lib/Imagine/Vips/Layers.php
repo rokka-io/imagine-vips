@@ -11,6 +11,7 @@
 
 namespace Imagine\Vips;
 
+use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
 use Imagine\Image\Metadata\MetadataBag;
@@ -204,11 +205,19 @@ class Layers extends AbstractLayers
     public function offsetSet($offset, $image)
     {
         if ($offset === null) {
-            $this->layers[] = $image;
-        } else {
-            $this->layers[$offset] = $image;
+            $offset = $this->count;
         }
-        $this->count++;
+
+        if (!(isset($this->layers[$offset]) || isset($this->resources[$offset]))) {
+            $this->count++;
+        }
+
+        $this->layers[$offset] = $image;
+
+        if (isset($this->resources[$offset])) {
+            unset($this->resources[$offset]);
+        }
+
         if ($this->count === 2) {
             $this->image->vipsCopy();
             $this->image->getVips()->set('page-height', $this->image->getVips()->height);
@@ -220,6 +229,7 @@ class Layers extends AbstractLayers
      */
     public function offsetUnset($offset)
     {
+        throw new NotSupportedException("Removing frames is not supported yet.");
     }
 
     public function getResource($offset)
@@ -241,7 +251,8 @@ class Layers extends AbstractLayers
     public function getResources()
     {
         $resources = [];
-        for($i = 0; $i < count($this); $i++) {
+        $count = count($this);
+        for($i = 0; $i < $count; $i++) {
             $resources[$i] = $this->getResource($i);
 
         }

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### 0.10.1 (2020-01-14)
+
+  * Fix some issues when adding new frames to layers.
+  * Throw an NotSupportedException when trying to unset a layer as not yet supported.
+  
 ### 0.10.0 (2020-01-14)
 
   * Improved handling of animated gifs and webp
