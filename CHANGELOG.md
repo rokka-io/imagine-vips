@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.11.0 (2020-01-21)
+  * Add webp_reduction_effort save option. Default is 4, max is 6.
+
 ### 0.10.1 (2020-01-14)
 
   * Fix some issues when adding new frames to layers.

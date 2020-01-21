@@ -57,6 +57,11 @@ class Image extends AbstractImage
     public const OPTION_WEBP_QUALITY = 'webp_quality';
     public const OPTION_HEIF_QUALITY = 'heif_quality';
     public const OPTION_WEBP_LOSSLESS = 'webp_lossless';
+
+    /**
+     * The reduction effort for webp. Max is 6, Default 4.
+     */
+    public const OPTION_WEBP_REDUCTION_EFFORT = 'webp_reduction_effort';
     public const OPTION_PNG_COMPRESSION_LEVEL = 'png_compression_level';
     public const OPTION_PNG_COMPRESSION_FILTER = 'png_compression_filter';
 
@@ -303,12 +308,12 @@ class Image extends AbstractImage
         $palette = null !== $color ? $color->getPalette() : new RGB();
         $color = null !== $color ? $color : $palette->color('fff');
         if ($palette instanceof RGB) {
-            list($red, $green, $blue, $alpha) = self::getColorArrayAlpha($color);
+            [$red, $green, $blue, $alpha] = self::getColorArrayAlpha($color);
 
             // Make a 1x1 pixel with all the channels and cast it to provided format.
             $pixel = VipsImage::black(1, 1)->add([$red, $green, $blue, $alpha])->cast(BandFormat::UCHAR);
         } elseif ($palette instanceof Grayscale) {
-            list($gray, $alpha) = self::getColorArrayAlpha($color, 2);
+            [$gray, $alpha] = self::getColorArrayAlpha($color, 2);
 
             // Make a 1x1 pixel with all the channels and cast it to provided format.
             $pixel = VipsImage::black(1, 1)->add([$gray, $alpha])->cast(BandFormat::UCHAR);
@@ -428,7 +433,7 @@ class Image extends AbstractImage
         $options = $this->applyImageOptions($image->getVips(), $options, $path);
         $format = $options['format'];
 
-        list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
+        [$method, $saveOptions] = $this->getSaveMethodAndOptions($format, $options);
         $vips = $this->joinMultilayer($format, $image);
 
         if ($method !== null) {
@@ -472,7 +477,7 @@ class Image extends AbstractImage
         /** @var Image $image */
         $image = $this->prepareOutput($options);
         $options = $this->applyImageOptions($image->getVips(), $options);
-        list($method, $saveOptions) = $this->getSaveMethodAndOptions($format, $options);
+        [$method, $saveOptions] = $this->getSaveMethodAndOptions($format, $options);
 
         $vips = $this->joinMultilayer($format, $image);
         if ($method !== null) {
@@ -979,6 +984,9 @@ class Image extends AbstractImage
         if (!isset($options[self::OPTION_WEBP_QUALITY]) && in_array($format, ['webp'], true)) {
             $options[self::OPTION_WEBP_QUALITY] = 80; // FIXME: correct value?
         }
+        if (!isset($options[self::OPTION_WEBP_REDUCTION_EFFORT]) && in_array($format, ['webp'], true)) {
+            $options[self::OPTION_WEBP_REDUCTION_EFFORT] = 4; // FIXME: correct value?
+        }
         if (!isset($options[self::OPTION_WEBP_LOSSLESS]) && in_array($format, ['webp'], true)) {
             $options[self::OPTION_WEBP_LOSSLESS] = false;
         }
@@ -1087,7 +1095,15 @@ class Image extends AbstractImage
             $saveOptions = $this->applySaveOptions($pngOptions, $options);
             $method = 'pngsave';
         } elseif ('webp' == $format) {
-            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_WEBP_QUALITY], 'lossless' => $options[self::OPTION_WEBP_LOSSLESS]], $options);
+            $saveOptions = $this->applySaveOptions([
+                'strip' => $this->strip,
+                'Q' => $options[self::OPTION_WEBP_QUALITY],
+                'lossless' => $options[self::OPTION_WEBP_LOSSLESS],
+            ], $options);
+            if (version_compare(vips_version(), '8.8', '>=')) {
+                $saveOptions['reduction_effort'] = $options[self::OPTION_WEBP_REDUCTION_EFFORT];
+            }
+
             $method = 'webpsave';
         } elseif ('tiff' == $format) {
             $saveOptions = $this->applySaveOptions([], $options);
