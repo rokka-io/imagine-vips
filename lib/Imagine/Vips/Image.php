@@ -984,9 +984,6 @@ class Image extends AbstractImage
         if (!isset($options[self::OPTION_WEBP_QUALITY]) && in_array($format, ['webp'], true)) {
             $options[self::OPTION_WEBP_QUALITY] = 80; // FIXME: correct value?
         }
-        if (!isset($options[self::OPTION_WEBP_REDUCTION_EFFORT]) && in_array($format, ['webp'], true)) {
-            $options[self::OPTION_WEBP_REDUCTION_EFFORT] = 4; // FIXME: correct value?
-        }
         if (!isset($options[self::OPTION_WEBP_LOSSLESS]) && in_array($format, ['webp'], true)) {
             $options[self::OPTION_WEBP_LOSSLESS] = false;
         }
@@ -1100,7 +1097,7 @@ class Image extends AbstractImage
                 'Q' => $options[self::OPTION_WEBP_QUALITY],
                 'lossless' => $options[self::OPTION_WEBP_LOSSLESS],
             ], $options);
-            if (version_compare(vips_version(), '8.8', '>=')) {
+            if (isset($options[self::OPTION_WEBP_REDUCTION_EFFORT]) && version_compare(vips_version(), '8.8', '>=')) {
                 $saveOptions['reduction_effort'] = $options[self::OPTION_WEBP_REDUCTION_EFFORT];
             }
 
