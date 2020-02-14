@@ -1110,7 +1110,11 @@ class Image extends AbstractImage
             $method = 'heifsave';
         } elseif ('gif' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
-            if($this->vips->typeof('delay') === 0) {
+            $delayProperty = 'delay';
+            if (version_compare(vips_version(), '8.9', '<')) {
+                $delayProperty = 'gif-delay';
+            }
+            if($this->vips->typeof($delayProperty) === 0) {
                 $this->layers()->animate('gif', Layers::DEFAULT_GIF_DELAY, 0);
             }
             $method = 'magicksave';
