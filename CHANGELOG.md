@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.11.1 (2020-02-17)
+  * Fix gif delay for vips versions < 8.9
+
 ### 0.11.0 (2020-01-21)
   * Add webp_reduction_effort save option. Default is 4, max is 6.
 
