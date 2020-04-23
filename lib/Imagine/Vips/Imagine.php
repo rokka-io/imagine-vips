@@ -14,6 +14,8 @@ use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractImagine;
 use Imagine\Image\BoxInterface;
+use Imagine\Image\FontInterface;
+use Imagine\Image\ImageInterface;
 use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Palette\CMYK;
 use Imagine\Image\Palette\Color\ColorInterface;
@@ -78,7 +80,7 @@ class Imagine extends AbstractImagine
         }
     }
 
-    public function open($path, $loadOptions = [])
+    public function open($path, $loadOptions = []): Image
     {
         $path = $this->checkPath($path);
 
@@ -98,7 +100,7 @@ class Imagine extends AbstractImagine
     /**
      * {@inheritdoc}
      */
-    public function create(BoxInterface $size, ColorInterface $color = null)
+    public function create(BoxInterface $size, ColorInterface $color = null): Image
     {
         $vips = Image::generateImage($size, $color);
 
@@ -108,7 +110,7 @@ class Imagine extends AbstractImagine
     /**
      * {@inheritdoc}
      */
-    public function load($string, $loadOptions = [])
+    public function load($string, $loadOptions = []): ImageInterface
     {
         try {
             $loader = VipsImage::findLoadBuffer($string);
@@ -141,7 +143,7 @@ class Imagine extends AbstractImagine
     /**
      * {@inheritdoc}
      */
-    public function read($resource)
+    public function read($resource): ImageInterface
     {
         if (!is_resource($resource)) {
             throw new InvalidArgumentException('Variable does not contain a stream resource');
@@ -155,7 +157,7 @@ class Imagine extends AbstractImagine
     /**
      * {@inheritdoc}
      */
-    public function font($file, $size, ColorInterface $color)
+    public function font($file, $size, ColorInterface $color): FontInterface
     {
         return new Font($file, $size, $color);
     }
@@ -169,7 +171,7 @@ class Imagine extends AbstractImagine
      *
      * @return PaletteInterface
      */
-    public static function createPalette(VipsImage $vips)
+    public static function createPalette(VipsImage $vips): PaletteInterface
     {
         switch ($vips->interpretation) {
             case Interpretation::RGB:
@@ -196,12 +198,11 @@ class Imagine extends AbstractImagine
         return $palette;
     }
 
-
     /**
      * Checks, if the necessary Libraries are installed
      * @return bool
      */
-    public static function hasVipsInstalled()
+    public static function hasVipsInstalled(): bool
     {
         try {
             // this method only exists in php-vips 2.0
@@ -223,7 +224,7 @@ class Imagine extends AbstractImagine
         }
     }
 
-    protected function getLoadOptions($loader, $loadOptions = [])
+    protected function getLoadOptions($loader, $loadOptions = []): array
     {
         $options = [];
         switch ($loader) {
@@ -262,10 +263,10 @@ class Imagine extends AbstractImagine
      * Some files (esp. tiff) can have more than one alpha layer.. We just remove all except one.
      * Not sure, this is the right approach, but good enough for now.
      *
-     * @param Image $vips
-     * @return Image
+     * @param VipsImage $vips
+     * @return VipsImage
      */
-    protected function removeUnnecessaryAlphaChannels($vips)
+    protected function removeUnnecessaryAlphaChannels(VipsImage $vips): VipsImage
     {
         $lastVipsWithAlpha = $vips;
 

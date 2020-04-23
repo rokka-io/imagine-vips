@@ -11,6 +11,7 @@ namespace Imagine\Vips;
 
 use Imagine\Image\AbstractFont;
 use Imagine\Image\Box;
+use Imagine\Image\BoxInterface;
 use Imagine\Image\Palette\Color\ColorInterface;
 use Jcupitt\Vips\Image as VipsImage;
 
@@ -32,7 +33,7 @@ final class Font extends AbstractFont
     /**
      * {@inheritdoc}
      */
-    public function box($string, $angle = 0)
+    public function box($string, $angle = 0): BoxInterface
     {
         //FIXME, doesn't work for me, maybe I don't have text support compiled in?
         $text = VipsImage::text($string, ['font' => $this->file, 'size' => $this->size, 'dpi' => 300]);
