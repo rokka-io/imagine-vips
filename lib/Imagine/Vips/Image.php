@@ -683,12 +683,7 @@ class Image extends AbstractImage
             $newColorspace = self::$colorspaceMapping[$palette->name()];
         }
 
-        try {
-            $vipsNew = $vipsNew->icc_import(['embedded' => true]);
-        } catch (VipsException $e) {
-            // try with the supplied "default" profile, if no embedded was found and it failed
-            $vipsNew = $this->applyProfile($palette->profile(), $vipsNew);
-        }
+        $vipsNew = $this->applyProfile($palette->profile(), $vipsNew);
         $vipsNew = $vipsNew->colourspace($newColorspace);
 
         try {
@@ -828,6 +823,7 @@ class Image extends AbstractImage
                 VipsProfile::fromRawData($profile->data())->path(),
                 [
                     'embedded' => true,
+                    'intent' => 'perceptual',
                     'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
                 ]
             );
@@ -839,6 +835,7 @@ class Image extends AbstractImage
                     VipsProfile::fromRawData($profile->data())->path(),
                     [
                         'embedded' => false,
+                        'intent' => 'perceptual',
                         'input_profile' => __DIR__ . '/../../resources/colorprofiles/' . $defaultProfile,
                     ]
                 );

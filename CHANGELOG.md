@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.12.0 (2020-07-14)
+  * Improve color profile handling. Always transform them.
+
 ### 0.11.0 (2020-02-17)
   * Fix gif delay for vips versions < 8.9
   * Add webp_reduction_effort save option. Default is 4, max is 6.
