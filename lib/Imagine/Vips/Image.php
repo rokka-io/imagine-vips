@@ -56,6 +56,7 @@ class Image extends AbstractImage
 
     public const OPTION_WEBP_QUALITY = 'webp_quality';
     public const OPTION_HEIF_QUALITY = 'heif_quality';
+    public const OPTION_AVIF_QUALITY = 'avif_quality';
     public const OPTION_WEBP_LOSSLESS = 'webp_lossless';
 
     /**
@@ -1105,6 +1106,10 @@ class Image extends AbstractImage
         } elseif (('heif' == $format || 'heic' == $format) && version_compare(vips_version(), '8.8.0', '>=')) {
             $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_HEIF_QUALITY]], $options);
             $method = 'heifsave';
+        } elseif (('avif' == $format) && version_compare(vips_version(), '8.9.0', '>=')) {
+            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1'], $options);
+            $method = 'heifsave';
+        
         } elseif ('gif' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
             $delayProperty = 'delay';
