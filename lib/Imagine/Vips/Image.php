@@ -1084,6 +1084,7 @@ class Image extends AbstractImage
         } elseif ('png' == $format) {
             $pngOptions =  ['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]];
             if ($options[self::OPTION_PNG_QUALITY] < 100) {
+                $this->convertTo8BitMax();
                 $pngOptions['Q'] = $options[self::OPTION_PNG_QUALITY];
                 $pngOptions['palette'] = true;
             }
@@ -1188,5 +1189,19 @@ class Image extends AbstractImage
             }
         }
         return $vips;
+    }
+
+    private function convertTo8BitMax(): self
+    {
+        switch ($this->vips->interpretation) {
+            case Interpretation::GREY16:
+                $this->vips = $this->vips->colourspace(Interpretation::B_W);
+                break;
+            case Interpretation::RGB16:
+                $this->vips = $this->vips->colourspace(Interpretation::SRGB);
+                break;
+        }
+
+        return $this;
     }
 }
