@@ -1105,10 +1105,10 @@ class Image extends AbstractImage
             $saveOptions = $this->applySaveOptions([], $options);
             $method = 'tiffsave';
         } elseif (('heif' == $format || 'heic' == $format) && version_compare(vips_version(), '8.8.0', '>=')) {
-            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_HEIF_QUALITY]], $options);
+            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_HEIF_QUALITY], 'strip' => $this->strip], $options);
             $method = 'heifsave';
         } elseif (('avif' == $format) && version_compare(vips_version(), '8.9.0', '>=')) {
-            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1'], $options);
+            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1','strip' => $this->strip], $options);
             $method = 'heifsave';
         
         } elseif ('gif' == $format) {
