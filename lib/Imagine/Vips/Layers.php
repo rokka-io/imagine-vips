@@ -15,9 +15,9 @@ use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
 use Imagine\Image\Metadata\MetadataBag;
-use Imagine\Image\Point;
 use Jcupitt\Vips\BlendMode;
 use Jcupitt\Vips\Exception;
+use Jcupitt\Vips\Image as VipsImage;
 
 class Layers extends AbstractLayers
 {
@@ -89,7 +89,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function animate($format, $delay, $loops)
+    public function animate($format, $delay, $loops): self
     {
         $vips = $this->image->vipsCopy();
         if (version_compare(vips_version(), '8.9', '<')) {
@@ -108,7 +108,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function coalesce()
+    public function coalesce(): self
     {
         $merged = $this->extractAt(0)->getVips();
         $width = $merged->width;
@@ -133,6 +133,7 @@ class Layers extends AbstractLayers
             $this->resources[$i] = $frame;
             ++$i;
         }
+        return $this;
     }
 
     /**
@@ -232,7 +233,7 @@ class Layers extends AbstractLayers
         throw new NotSupportedException("Removing frames is not supported yet.");
     }
 
-    public function getResource($offset)
+    public function getResource($offset): VipsImage
     {
         if ($offset === 0) {
             return $this->image->getVips();
@@ -246,9 +247,9 @@ class Layers extends AbstractLayers
     }
 
      /**
-     * @return \Jcupitt\Vips\Image[]
+     * @return VipsImage[]
      */
-    public function getResources()
+    public function getResources(): array
     {
         $resources = [];
         $count = count($this);
@@ -284,7 +285,7 @@ class Layers extends AbstractLayers
      *
      * @throws \Jcupitt\Vips\Exception
      */
-    public function setDelays($delays) {
+    public function setDelays(array $delays) {
         if (version_compare(vips_version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
@@ -356,7 +357,7 @@ class Layers extends AbstractLayers
      *
      * @return Image
      */
-    private function extractAt($offset)
+    private function extractAt($offset): Image
     {
         if ($offset === 0) {
             return $this->image;

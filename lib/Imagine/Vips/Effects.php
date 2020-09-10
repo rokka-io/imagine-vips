@@ -36,7 +36,7 @@ class Effects implements EffectsInterface
     /**
      * {@inheritdoc}
      */
-    public function gamma($correction)
+    public function gamma($correction): self
     {
         try {
             $this->image->applyToLayers(function (VipsImage $vips) use ($correction): VipsImage {
@@ -52,7 +52,7 @@ class Effects implements EffectsInterface
     /**
      * {@inheritdoc}
      */
-    public function negative()
+    public function negative(): self
     {
         try {
             $this->image->applyToLayers(function (VipsImage $vips): VipsImage {
@@ -76,7 +76,7 @@ class Effects implements EffectsInterface
     /**
      * {@inheritdoc}
      */
-    public function grayscale()
+    public function grayscale(): self
     {
         try {
             $this->image->applyToLayers(function (VipsImage $vips): VipsImage {
@@ -104,7 +104,7 @@ class Effects implements EffectsInterface
     /**
      * {@inheritdoc}
      */
-    public function colorize(ColorInterface $color)
+    public function colorize(ColorInterface $color): self
     {
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
@@ -112,7 +112,7 @@ class Effects implements EffectsInterface
     /**
      * {@inheritdoc}
      */
-    public function sharpen()
+    public function sharpen(): self
     {
         try {
             $this->image->applyToLayers(function (VipsImage $vips): VipsImage {
@@ -134,7 +134,7 @@ class Effects implements EffectsInterface
     /**
      * {@inheritdoc}
      */
-    public function blur($sigma = 1)
+    public function blur($sigma = 1): self
     {
         try {
             $this->image->applyToLayers(function (VipsImage $vips) use ($sigma): VipsImage {
@@ -147,12 +147,12 @@ class Effects implements EffectsInterface
         return $this;
     }
 
-    public function brightness($brightness)
+    public function brightness($brightness): self
     {
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter. You can use modulate() instead.');
     }
 
-    public function convolve(Matrix $matrix)
+    public function convolve(Matrix $matrix): self
     {
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }

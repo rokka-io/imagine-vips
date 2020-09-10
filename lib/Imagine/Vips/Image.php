@@ -9,6 +9,7 @@
 
 namespace Imagine\Vips;
 
+use Imagine\Effects\EffectsInterface;
 use Imagine\Exception\InvalidArgumentException;
 use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\OutOfBoundsException;
@@ -17,9 +18,9 @@ use Imagine\Image\AbstractImage;
 use Imagine\Image\Box;
 use Imagine\Image\BoxInterface;
 use Imagine\Image\Fill\FillInterface;
-use Imagine\Image\Fill\Gradient\Horizontal;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\ImagineInterface;
+use Imagine\Image\LayersInterface;
 use Imagine\Image\Metadata\DefaultMetadataReader;
 use Imagine\Image\Metadata\MetadataBag;
 use Imagine\Image\Palette\CMYK;
@@ -28,7 +29,6 @@ use Imagine\Image\Palette\Color\Gray;
 use Imagine\Image\Palette\Grayscale;
 use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
-use Imagine\Image\Point;
 use Imagine\Image\PointInterface;
 use Imagine\Image\ProfileInterface;
 use Imagine\Image\VipsProfile;
@@ -127,7 +127,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->get('png');
     }
@@ -137,7 +137,7 @@ class Image extends AbstractImage
      *
      * @return VipsImage
      */
-    public function getVips()
+    public function getVips(): VipsImage
     {
         return $this->vips;
     }
@@ -147,7 +147,7 @@ class Image extends AbstractImage
      *
      * @return VipsImage
      */
-    public function vipsCopy()
+    public function vipsCopy(): VipsImage
     {
          $this->vips = $this->vips->copy();
          return $this->vips;
@@ -159,7 +159,7 @@ class Image extends AbstractImage
      *
      * @return self
      */
-    public function setVips(VipsImage $vips, $updatePalette = false)
+    public function setVips(VipsImage $vips, $updatePalette = false): self
     {
         if ($this->vips->interpretation != $vips->interpretation) {
             $updatePalette = true;
@@ -178,7 +178,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function copy()
+    public function copy(): ImageInterface
     {
         $clone = clone $this->vips->copy();
 
@@ -190,7 +190,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function crop(PointInterface $start, BoxInterface $size)
+    public function crop(PointInterface $start, BoxInterface $size): ImageInterface
     {
         $thisBox = $this->getSize();
         if (!$start->in($thisBox)) {
@@ -222,7 +222,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function flipHorizontally()
+    public function flipHorizontally(): ImageInterface
     {
         try {
             $this->applyToLayers(function (VipsImage $vips): VipsImage {
@@ -240,7 +240,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function flipVertically()
+    public function flipVertically(): ImageInterface
     {
         try {
             $this->applyToLayers(function (VipsImage $vips): VipsImage {
@@ -258,7 +258,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function strip()
+    public function strip(): ImageInterface
     {
         $this->strip = true;
         return $this;
@@ -269,7 +269,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function paste(ImageInterface $image, PointInterface $start, $alpha = 100)
+    public function paste(ImageInterface $image, PointInterface $start, $alpha = 100): ImageInterface
     {
         if (version_compare(vips_version(), '8.6', '<')) {
             throw new RuntimeException('The paste method needs at least vips 8.6');
@@ -302,7 +302,7 @@ class Image extends AbstractImage
         return $this;
     }
 
-    public static function generateImage(BoxInterface $size, ColorInterface $color = null)
+    public static function generateImage(BoxInterface $size, ColorInterface $color = null): VipsImage
     {
         $width = $size->getWidth();
         $height = $size->getHeight();
@@ -336,7 +336,7 @@ class Image extends AbstractImage
      *
      * @return self
      */
-    public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED)
+    public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED): ImageInterface
     {
         try {
             $this->applyToLayers(function (VipsImage $vips) use ($size): VipsImage {
@@ -378,7 +378,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function rotate($angle, ColorInterface $background = null)
+    public function rotate($angle, ColorInterface $background = null): ImageInterface
     {
         $color = $background ? $background : $this->palette->color('fff');
         try {
@@ -427,7 +427,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function save($path = null, array $options = [])
+    public function save($path = null, array $options = []): ImageInterface
     {
         /** @var Image $image */
         $image = $this->prepareOutput($options);
@@ -439,7 +439,8 @@ class Image extends AbstractImage
 
         if ($method !== null) {
             try {
-                return $vips->$method($path, $saveOptions);
+                $vips->$method($path, $saveOptions);
+                return $this;
             } catch (\Jcupitt\Vips\Exception $e) {
                 // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
                 // installed
@@ -461,7 +462,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function show($format, array $options = [])
+    public function show($format, array $options = []): ImageInterface
     {
         header('Content-type: '.$this->getMimeType($format));
         echo $this->get($format, $options);
@@ -472,7 +473,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function get($format, array $options = [])
+    public function get($format, array $options = []): string
     {
         $options['format'] = $format;
         /** @var Image $image */
@@ -505,7 +506,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function interlace($scheme)
+    public function interlace($scheme): ImageInterface
     {
         //FIXME: implement in vips
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
@@ -514,7 +515,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function draw()
+    public function draw(): ImageInterface
     {
         //FIXME: implement in vips
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
@@ -523,7 +524,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function effects()
+    public function effects(): EffectsInterface
     {
         return new Effects($this);
     }
@@ -531,7 +532,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function getSize()
+    public function getSize(): BoxInterface
     {
         $width = $this->vips->width;
         $height = $this->vips->height;
@@ -544,7 +545,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function applyMask(ImageInterface $mask)
+    public function applyMask(ImageInterface $mask): ImageInterface
     {
         if (!$mask instanceof self) {
             throw new InvalidArgumentException('Can only apply instances of Imagine\Imagick\Image as masks');
@@ -574,7 +575,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function mask()
+    public function mask(): ImageInterface
     {
         /** @var VipsImage $lch */
         $lch = $this->vips->colourspace(Interpretation::LCH);
@@ -596,7 +597,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function fill(FillInterface $fill)
+    public function fill(FillInterface $fill): ImageInterface
     {
         //FIXME: implement in vips
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
@@ -605,7 +606,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function histogram()
+    public function histogram(): ImageInterface
     {
         //FIXME: implement in vips
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
@@ -614,7 +615,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function getColorAt(PointInterface $point)
+    public function getColorAt(PointInterface $point): ColorInterface
     {
         if (!$point->in($this->getSize())) {
             throw new RuntimeException(sprintf('Error getting color at point [%s,%s]. The point must be inside the image of size [%s,%s]', $point->getX(), $point->getY(), $this->getSize()->getWidth(), $this->getSize()->getHeight()));
@@ -642,7 +643,7 @@ class Image extends AbstractImage
      *
      * @return ColorInterface
      */
-    public function pixelToColor(array $pixel)
+    public function pixelToColor(array $pixel): ColorInterface
     {
         if ($this->palette->supportsAlpha() && $this->vips->hasAlpha()) {
             $alpha = array_pop($pixel) / 255 * 100;
@@ -665,7 +666,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function layers()
+    public function layers(): LayersInterface
     {
         return $this->layers;
     }
@@ -673,7 +674,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function usePalette(PaletteInterface $palette)
+    public function usePalette(PaletteInterface $palette): self
     {
         $new = clone $this;
         $vipsNew = $new->getVips();
@@ -708,7 +709,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function palette()
+    public function palette(): PaletteInterface
     {
         return $this->palette;
     }
@@ -716,7 +717,7 @@ class Image extends AbstractImage
     /**
      * {@inheritdoc}
      */
-    public function profile(ProfileInterface $profile)
+    public function profile(ProfileInterface $profile): ImageInterface
     {
         $new = clone $this;
         $vips = $new->getVips();
@@ -759,7 +760,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = [])
+    public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = []): ImageInterface
     {
         if (null === $imagine) {
             $oldMetaReader = null;
@@ -816,7 +817,7 @@ class Image extends AbstractImage
         $this->palette = Imagine::createPalette($this->vips);
     }
 
-    protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
+    protected function applyProfile(ProfileInterface $profile, VipsImage $vips): VipsImage
     {
         $defaultProfile = $this->getDefaultProfileForInterpretation($vips);
         try {
@@ -848,14 +849,14 @@ class Image extends AbstractImage
         return $vips;
     }
     
-    public static function isOpaque(VipsImage $vips) {
+    public static function isOpaque(VipsImage $vips): bool {
         if (!$vips->hasAlpha()) {
             return true;
         }
         return ((int) $vips->extract_band($vips->bands - 1)->min() === 255);
     }
 
-    protected function extendImage(BoxInterface $box, PointInterface $start)
+    protected function extendImage(BoxInterface $box, PointInterface $start): self
     {
         if ($this->vips->bands > 2) {
             $color = new \Imagine\Image\Palette\Color\RGB(new RGB(), [255, 255, 255], 0);
@@ -871,7 +872,7 @@ class Image extends AbstractImage
         return $this;
     }
 
-    protected static function getInterpretation(PaletteInterface $palette)
+    protected static function getInterpretation(PaletteInterface $palette): string
     {
         if ($palette instanceof RGB) {
             return Interpretation::SRGB;
@@ -890,7 +891,7 @@ class Image extends AbstractImage
      *
      * @return string
      */
-    protected function getDefaultProfileForInterpretation($vips)
+    protected function getDefaultProfileForInterpretation(VipsImage $vips): string
     {
         $defaultProfile = self::ICC_DEFAULT_PROFILE_DEFAULT;
         if (isset(self::$interpretationIccProfileMapping[$vips->interpretation])) {
@@ -905,7 +906,7 @@ class Image extends AbstractImage
      *
      * @return string
      */
-    protected function getImageStringForLoad(VipsImage $res, $tiffOptions = [])
+    protected function getImageStringForLoad(VipsImage $res, $tiffOptions = []): string
     {
         $options = array_merge(['compression' => ForeignTiffCompression::NONE], $tiffOptions);
 
@@ -933,7 +934,7 @@ class Image extends AbstractImage
      *
      * Flatten the image.
      */
-    private function flatten()
+    private function flatten(): VipsImage
     {
         try {
             if ($this->vips->hasAlpha()) {
@@ -1028,7 +1029,7 @@ class Image extends AbstractImage
      *
      * @return string mime-type
      */
-    private function getMimeType($format)
+    private function getMimeType($format): string
     {
         static $mimeTypes = [
             'jpeg' => 'image/jpeg',
@@ -1165,7 +1166,7 @@ class Image extends AbstractImage
      * @throws \Imagine\Exception\RuntimeException
      * @throws \Jcupitt\Vips\Exception
      */
-    private function joinMultilayer($format, Image $image): \Jcupitt\Vips\Image {
+    private function joinMultilayer($format, Image $image): VipsImage {
         $vips = $this->getVips();
         if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
                 || $format === 'gif')
