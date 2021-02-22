@@ -23,7 +23,7 @@
         "bin-dir": "bin"
     },
     "require": {
-        "php": "~7.0",
+        "php": "^7.0 || ^8.0",
         "ext-vips": "^1.0.8",
         "imagine/imagine": "^1.0",
         "jcupitt/vips": "^1.0.3"
