@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### 0.13.0 (2021-02-22)
+  * Add PHP 8 compatibility
+  * Add Avif support
+  * Strip metadata in Heif
+
 ### 0.12.0 (2020-07-14)
   * Improve color profile handling. Always transform them.
 
