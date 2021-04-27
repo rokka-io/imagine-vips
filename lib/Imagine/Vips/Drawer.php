@@ -30,6 +30,25 @@ class Drawer implements DrawerInterface
         $this->textWithHeight($string, $font, $position, $angle, $width);
     }
 
+    /**
+     * Draw text onto an image
+     *
+     * This code is not totally tested, but works basically.
+     *
+     * @param $string
+     * @param \Imagine\Image\AbstractFont $font
+     * @param \Imagine\Image\PointInterface $position
+     * @param int $angle
+     * @param null $width
+     * @param null $height
+     * @param string $align
+     *
+     * @throws \FontLib\Exception\FontNotFoundException
+     * @throws \Imagine\Exception\NotSupportedException
+     * @throws \Imagine\Exception\RuntimeException
+     * @throws \Jcupitt\Vips\Exception
+     */
+
     public function textWithHeight(
         $string,
         AbstractFont $font,
