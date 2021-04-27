@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.14.0 (unreleased)
+  * Add Drawer::text() support
+  * Remove support for PHP 7.0, minimum is now PHP 7.1 
+
 ### 0.13.0 (2021-02-22)
   * Add PHP 8 compatibility
   * Add Avif support
