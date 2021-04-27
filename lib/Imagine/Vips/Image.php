@@ -17,7 +17,6 @@ use Imagine\Image\AbstractImage;
 use Imagine\Image\Box;
 use Imagine\Image\BoxInterface;
 use Imagine\Image\Fill\FillInterface;
-use Imagine\Image\Fill\Gradient\Horizontal;
 use Imagine\Image\ImageInterface;
 use Imagine\Image\ImagineInterface;
 use Imagine\Image\Metadata\DefaultMetadataReader;
@@ -28,7 +27,6 @@ use Imagine\Image\Palette\Color\Gray;
 use Imagine\Image\Palette\Grayscale;
 use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
-use Imagine\Image\Point;
 use Imagine\Image\PointInterface;
 use Imagine\Image\ProfileInterface;
 use Imagine\Image\VipsProfile;
@@ -66,7 +64,6 @@ class Image extends AbstractImage
     public const OPTION_PNG_COMPRESSION_LEVEL = 'png_compression_level';
     public const OPTION_PNG_COMPRESSION_FILTER = 'png_compression_filter';
 
-
     /**
      * @var VipsImage
      */
@@ -95,10 +92,6 @@ class Image extends AbstractImage
 
     /**
      * Constructs a new Image instance.
-     *
-     * @param VipsImage        $vips
-     * @param PaletteInterface $palette
-     * @param MetadataBag      $metadata
      */
     public function __construct(VipsImage $vips, PaletteInterface $palette, MetadataBag $metadata)
     {
@@ -143,19 +136,19 @@ class Image extends AbstractImage
     }
 
     /**
-     * Copies the image, mainly needed when manipulation image metadata
+     * Copies the image, mainly needed when manipulation image metadata.
      *
      * @return VipsImage
      */
     public function vipsCopy()
     {
-         $this->vips = $this->vips->copy();
-         return $this->vips;
+        $this->vips = $this->vips->copy();
+
+        return $this->vips;
     }
 
     /**
-     * @param VipsImage $vips
-     * @param bool      $updatePalette In case the palette should changed and should be updated
+     * @param bool $updatePalette In case the palette should changed and should be updated
      *
      * @return self
      */
@@ -261,6 +254,7 @@ class Image extends AbstractImage
     public function strip()
     {
         $this->strip = true;
+
         return $this;
     }
 
@@ -276,30 +270,33 @@ class Image extends AbstractImage
         }
 
         if (!$image instanceof self) {
-            if (method_exists($image, "convertToVips")) {
+            if (method_exists($image, 'convertToVips')) {
                 $image = $image->convertToVips();
             } else {
                 throw new RuntimeException("Paste image needs to be a Imagine\Vips\Image object");
             }
         }
-        $inVips = $image->getVips();
+        $this->vips = $this->pasteVipsImage($image->getVips(), $start, $alpha);
 
-        if (!$inVips->hasAlpha()) {
+        return $this;
+    }
+
+    public function pasteVipsImage(VipsImage $vips, PointInterface $start, $alpha = 100)
+    {
+        if (!$vips->hasAlpha()) {
             if ($this->vips->hasAlpha()) {
-                $inVips = $inVips->bandjoin([255]);
+                $vips = $vips->bandjoin([255]);
             }
         }
-
         if (!$this->vips->hasAlpha()) {
-            if ($inVips->hasAlpha()) {
+            if ($vips->hasAlpha()) {
                 $this->vips = $this->vips->bandjoin([255]);
             }
         }
-        $image = $image->extendImage($this->getSize(), $start)->getVips();
 
-        $this->vips = $this->vips->composite([$image], [BlendMode::OVER])->copyMemory();
+        $vips = self::extendImageWithVips($vips, $this->getSize(), $start);
 
-        return $this;
+        return $this->vips->composite([$vips], [BlendMode::OVER])->copyMemory();
     }
 
     public static function generateImage(BoxInterface $size, ColorInterface $color = null)
@@ -331,8 +328,7 @@ class Image extends AbstractImage
     /**
      * Resizes current image and returns self.
      *
-     * @param BoxInterface $size
-     * @param mixed        $filter Not supported yet
+     * @param mixed $filter Not supported yet
      *
      * @return self
      */
@@ -364,7 +360,7 @@ class Image extends AbstractImage
     public function applyToLayers(callable $callback)
     {
         $layers = $this->layers();
-        $n = count($layers);
+        $n = \count($layers);
         for ($i = 0; $i < $n; ++$i) {
             $image = $layers[$i];
             $vips = $image->getVips();
@@ -437,22 +433,23 @@ class Image extends AbstractImage
         [$method, $saveOptions] = $this->getSaveMethodAndOptions($format, $options);
         $vips = $this->joinMultilayer($format, $image);
 
-        if ($method !== null) {
+        if (null !== $method) {
             try {
                 return $vips->$method($path, $saveOptions);
             } catch (\Jcupitt\Vips\Exception $e) {
                 // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
                 // installed
-                if ($method !== 'magicksave') {
+                if ('magicksave' !== $method) {
                     throw $e;
                 }
                 // if vips can't read it with libMagick, the alternatives can't either. throw an error
-                if (strpos($e->getMessage(),'libMagick error: no decode delegate for this image format') > 0) {
-                    throw new NotSupportedException("Image format is not supported.", 0,$e);
+                if (strpos($e->getMessage(), 'libMagick error: no decode delegate for this image format') > 0) {
+                    throw new NotSupportedException('Image format is not supported.', 0, $e);
                 }
             }
         }
         $alt = $this->convertToAlternativeForSave($options, $image, $format);
+
         return $alt->save($path, $options);
     }
 
@@ -481,24 +478,26 @@ class Image extends AbstractImage
         [$method, $saveOptions] = $this->getSaveMethodAndOptions($format, $options);
 
         $vips = $this->joinMultilayer($format, $image);
-        if ($method !== null) {
+        if (null !== $method) {
             try {
-                $saveMethod = $method . "_buffer";
+                $saveMethod = $method.'_buffer';
+
                 return $vips->$saveMethod($saveOptions);
             } catch (\Jcupitt\Vips\Exception $e) {
                 // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
                 // installed
-                if ($method !== 'magicksave') {
+                if ('magicksave' !== $method) {
                     throw $e;
                 }
 
                 // if vips can't read it with libMagick, the alternatives can't either. throw an error
-                if (strpos($e->getMessage(),'libMagick error: no decode delegate for this image format') > 0) {
-                    throw new NotSupportedException("Image format is not supported.", 0,$e);
+                if (strpos($e->getMessage(), 'libMagick error: no decode delegate for this image format') > 0) {
+                    throw new NotSupportedException('Image format is not supported.', 0, $e);
                 }
             }
         }
         $alt = $this->convertToAlternativeForSave($options, $image, $format);
+
         return $alt->get($format, $options);
     }
 
@@ -516,8 +515,7 @@ class Image extends AbstractImage
      */
     public function draw()
     {
-        //FIXME: implement in vips
-        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+        return new Drawer($this);
     }
 
     /**
@@ -625,7 +623,7 @@ class Image extends AbstractImage
         } catch (VipsException $e) {
             throw new RuntimeException('Error while getting image pixel color', $e->getCode(), $e);
         }
-        if (is_array($pixel)) {
+        if (\is_array($pixel)) {
             return $this->pixelToColor($pixel);
         }
         throw new RuntimeException(sprintf('Error getting color at point. Was not an array.'));
@@ -635,8 +633,6 @@ class Image extends AbstractImage
      * Returns a color given a pixel, depending the Palette context.
      *
      * Note : this method is public for PHP 5.3 compatibility
-     *
-     * @param array $pixel
      *
      * @throws InvalidArgumentException In case a unknown color is requested
      *
@@ -702,6 +698,7 @@ class Image extends AbstractImage
         }
 
         $this->setVips($vipsNew, true);
+
         return $this;
     }
 
@@ -759,7 +756,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = [])
+    public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = [], $asTiff = false)
     {
         if (null === $imagine) {
             $oldMetaReader = null;
@@ -770,24 +767,23 @@ class Image extends AbstractImage
             }
         } else {
             $oldMetaReader = $imagine->getMetadataReader();
-
         }
 
         // no need to reread meta data, saves lots of memory
         $imagine->setMetadataReader(new DefaultMetadataReader());
 
-        $image = $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions));
+        $image = $imagine->load($this->getImageStringForLoad($this->vips, $tiffOptions, $asTiff));
         // readd metadata
-        foreach ( $this->metadata() as $key => $value) {
+        foreach ($this->metadata() as $key => $value) {
             $image->metadata()->offsetSet($key, $value);
         }
 
-        if ($oldMetaReader !== null) {
+        if (null !== $oldMetaReader) {
             $imagine->setMetadataReader($oldMetaReader);
         }
 
         // if there's only one layer, we can do an early return
-        if (1 == count($this->layers())) {
+        if (1 == \count($this->layers())) {
             return $image;
         }
         $i = 0;
@@ -816,6 +812,31 @@ class Image extends AbstractImage
         $this->palette = Imagine::createPalette($this->vips);
     }
 
+    public static function isOpaque(VipsImage $vips)
+    {
+        if (!$vips->hasAlpha()) {
+            return true;
+        }
+
+        return 255 === (int) $vips->extract_band($vips->bands - 1)->min();
+    }
+
+    public static function extendImageWithVips(VipsImage $vips, BoxInterface $box, PointInterface $start)
+    {
+        if ($vips->bands > 2) {
+            $color = new \Imagine\Image\Palette\Color\RGB(new RGB(), [255, 255, 255], 0);
+        } else {
+            $color = new Gray(new Grayscale(), [255], 0);
+        }
+        if (!$vips->hasAlpha()) {
+            $vips = $vips->bandjoin([255]);
+        }
+        $new = self::generateImage($box, $color);
+        $vips = $new->insert($vips, $start->getX(), $start->getY());
+
+        return $vips;
+    }
+
     protected function applyProfile(ProfileInterface $profile, VipsImage $vips)
     {
         $defaultProfile = $this->getDefaultProfileForInterpretation($vips);
@@ -837,38 +858,15 @@ class Image extends AbstractImage
                     [
                         'embedded' => false,
                         'intent' => 'perceptual',
-                        'input_profile' => __DIR__ . '/../../resources/colorprofiles/' . $defaultProfile,
+                        'input_profile' => __DIR__.'/../../resources/colorprofiles/'.$defaultProfile,
                     ]
                 );
             } catch (Exception $e) {
-                throw new RuntimeException("icc_transform error. Message: " . $e->getMessage() . ". With defaultProfile: " . $defaultProfile);
+                throw new RuntimeException('icc_transform error. Message: '.$e->getMessage().'. With defaultProfile: '.$defaultProfile);
             }
         }
 
         return $vips;
-    }
-    
-    public static function isOpaque(VipsImage $vips) {
-        if (!$vips->hasAlpha()) {
-            return true;
-        }
-        return ((int) $vips->extract_band($vips->bands - 1)->min() === 255);
-    }
-
-    protected function extendImage(BoxInterface $box, PointInterface $start)
-    {
-        if ($this->vips->bands > 2) {
-            $color = new \Imagine\Image\Palette\Color\RGB(new RGB(), [255, 255, 255], 0);
-        } else {
-            $color = new Gray(new Grayscale(), [255], 0);
-        }
-        if (!$this->vips->hasAlpha()) {
-            $this->vips = $this->vips->bandjoin([255]);
-        }
-        $new = self::generateImage($box, $color);
-        $this->vips = $new->insert($this->vips, $start->getX(), $start->getY());
-
-        return $this;
     }
 
     protected static function getInterpretation(PaletteInterface $palette)
@@ -896,24 +894,26 @@ class Image extends AbstractImage
         if (isset(self::$interpretationIccProfileMapping[$vips->interpretation])) {
             $defaultProfile = self::$interpretationIccProfileMapping[$vips->interpretation];
         }
+
         return $defaultProfile;
     }
 
     /**
-     * @param VipsImage  $res
      * @param array|null $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
      *
      * @return string
      */
-    protected function getImageStringForLoad(VipsImage $res, $tiffOptions = [])
+    protected function getImageStringForLoad(VipsImage $res, $tiffOptions = [], $asTiff = false)
     {
         $options = array_merge(['compression' => ForeignTiffCompression::NONE], $tiffOptions);
 
-        return $res->tiffsave_buffer($options);
+        if ($asTiff) {
+            return $res->tiffsave_buffer($options);
+        }
+        return $res->pngsave_buffer($options);
     }
 
     /**
-     * @param array  $options
      * @param string $path
      *
      * @return Image
@@ -951,14 +951,10 @@ class Image extends AbstractImage
      *
      * Applies options before save or output
      *
-     * @param VipsImage $vips
-     * @param array     $options
-     * @param string    $path
+     * @param string $path
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
-     *
-     * @return array
      */
     private function applyImageOptions(VipsImage $vips, array $options, $path = null): array
     {
@@ -973,16 +969,16 @@ class Image extends AbstractImage
         $format = strtolower($format);
         $options['format'] = $format;
 
-        if (!isset($options[self::OPTION_JPEG_QUALITY]) && in_array($format, ['jpeg', 'jpg', 'pjpeg'], true)) {
+        if (!isset($options[self::OPTION_JPEG_QUALITY]) && \in_array($format, ['jpeg', 'jpg', 'pjpeg'], true)) {
             $options[self::OPTION_JPEG_QUALITY] = 92;
         }
-        if (!isset($options[self::OPTION_PNG_QUALITY]) && in_array($format, ['png'], true)) {
+        if (!isset($options[self::OPTION_PNG_QUALITY]) && \in_array($format, ['png'], true)) {
             $options[self::OPTION_PNG_QUALITY] = 100; // don't do pngquant, if set to 100
         }
-        if (!isset($options[self::OPTION_WEBP_QUALITY]) && in_array($format, ['webp'], true)) {
+        if (!isset($options[self::OPTION_WEBP_QUALITY]) && \in_array($format, ['webp'], true)) {
             $options[self::OPTION_WEBP_QUALITY] = 80; // FIXME: correct value?
         }
-        if (!isset($options[self::OPTION_WEBP_LOSSLESS]) && in_array($format, ['webp'], true)) {
+        if (!isset($options[self::OPTION_WEBP_LOSSLESS]) && \in_array($format, ['webp'], true)) {
             $options[self::OPTION_WEBP_LOSSLESS] = false;
         }
 
@@ -1055,34 +1051,27 @@ class Image extends AbstractImage
         ];
     }
 
-    /**
-     * @param array $options
-     * @param array $saveOptions
-     * @return array
-     */
     private function applySaveOptions(array $saveOptions, array $options): array
     {
         if (isset($options['vips'])) {
             $saveOptions = array_merge($saveOptions, $options['vips']);
         }
+
         return $saveOptions;
     }
 
     /**
      * @param string $format
-     * @param array $options
-     * @return array
      */
     private function getSaveMethodAndOptions($format, array $options): array
     {
         $method = null;
         $saveOptions = [];
         if ('jpg' == $format || 'jpeg' == $format) {
-
             $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JPEG_QUALITY], 'interlace' => true], $options);
             $method = 'jpegsave';
         } elseif ('png' == $format) {
-            $pngOptions =  ['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]];
+            $pngOptions = ['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]];
             if ($options[self::OPTION_PNG_QUALITY] < 100) {
                 $this->convertTo8BitMax();
                 $pngOptions['Q'] = $options[self::OPTION_PNG_QUALITY];
@@ -1105,19 +1094,18 @@ class Image extends AbstractImage
             $saveOptions = $this->applySaveOptions([], $options);
             $method = 'tiffsave';
         } elseif (('heif' == $format || 'heic' == $format) && version_compare(vips_version(), '8.8.0', '>=')) {
-            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_HEIF_QUALITY], 'strip' => $this->strip], $options);
+            $saveOptions = $this->applySaveOptions(['Q' => $options[self::OPTION_HEIF_QUALITY], 'strip' => $this->strip], $options);
             $method = 'heifsave';
         } elseif (('avif' == $format) && version_compare(vips_version(), '8.9.0', '>=')) {
-            $saveOptions = $this->applySaveOptions(['Q' =>  $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1','strip' => $this->strip], $options);
+            $saveOptions = $this->applySaveOptions(['Q' => $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1', 'strip' => $this->strip], $options);
             $method = 'heifsave';
-        
         } elseif ('gif' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
             $delayProperty = 'delay';
             if (version_compare(vips_version(), '8.9', '<')) {
                 $delayProperty = 'gif-delay';
             }
-            if($this->vips->typeof($delayProperty) === 0) {
+            if (0 === $this->vips->typeof($delayProperty)) {
                 $this->layers()->animate('gif', Layers::DEFAULT_GIF_DELAY, 0);
             }
             $method = 'magicksave';
@@ -1127,23 +1115,24 @@ class Image extends AbstractImage
         } else {
             // use magicksave, if available and possible
             // ppm in vips has some strange issues, save in fallback...
-            if ($format !== "ppm" && version_compare(vips_version(), '8.7.0', '>=')) {
+            if ('ppm' !== $format && version_compare(vips_version(), '8.7.0', '>=')) {
                 if ('heic' == $format || 'heif' === $format) {
                     $saveOptions = ['quality' => $options[self::OPTION_HEIF_QUALITY], 'format' => $format];
                     $method = 'magicksave';
                 }
                 // if only the format option is set, we can use that, otherwise we fall back to the alternative
                 // since they may be options, magicksave doesn't support yet
-                else if (isset($options['format']) && count($options) === 1) {
+                elseif (isset($options['format']) && 1 === \count($options)) {
                     $saveOptions = ['format' => $format];
                     $method = 'magicksave';
                 }
             }
         }
-        return array($method, $saveOptions);
+
+        return [$method, $saveOptions];
     }
 
-    private function convertToAlternativeForSave(array $options, Image $image, string $format): ImageInterface
+    private function convertToAlternativeForSave(array $options, self $image, string $format): ImageInterface
     {
         //fallback to imagemagick or gd
         $alt = $image->convertToAlternative();
@@ -1153,6 +1142,7 @@ class Image extends AbstractImage
                 $alt->getImagick()->setCompressionQuality($options[self::OPTION_HEIF_QUALITY]);
             }
         }
+
         return $alt;
     }
 
@@ -1160,34 +1150,33 @@ class Image extends AbstractImage
      * @param $format
      * @param \Imagine\Vips\Image $image
      *
-     * @return \Jcupitt\Vips\Image
      * @throws \Imagine\Exception\OutOfBoundsException
      * @throws \Imagine\Exception\RuntimeException
      * @throws \Jcupitt\Vips\Exception
      */
-    private function joinMultilayer($format, Image $image): \Jcupitt\Vips\Image {
+    private function joinMultilayer($format, self $image): \Jcupitt\Vips\Image
+    {
         $vips = $this->getVips();
-        if ((($format === 'webp' && version_compare(vips_version(), '8.8.0', '>='))
-                || $format === 'gif')
-            && count($image->layers()) > 1) {
-
+        if ((('webp' === $format && version_compare(vips_version(), '8.8.0', '>='))
+                || 'gif' === $format)
+            && \count($image->layers()) > 1) {
             $vips = $vips->copy();
             $height = $vips->height;
             $width = $vips->width;
             $vips->set('page-height', $height);
 
-
             foreach ($image->layers()->getResources() as $_k => $_v) {
-                if ($_k === 0) {
+                if (0 === $_k) {
                     continue;
                 }
                 // make frame the same size as the original, if height is not the same (if width is not the same, join will take care of it
                 if ($_v->height !== $height) {
                     $_v = $_v->embed(0, 0, $width, $height, ['extend' => Extend::BACKGROUND]);
                 }
-                $vips = $vips->join($_v, "vertical", ["expand" => true]);
+                $vips = $vips->join($_v, 'vertical', ['expand' => true]);
             }
         }
+
         return $vips;
     }
 

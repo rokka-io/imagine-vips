@@ -1,0 +1,136 @@
+<?php
+
+namespace Imagine\Vips;
+
+use Imagine\Draw\DrawerInterface;
+use Imagine\Exception\NotSupportedException;
+use Imagine\Image\AbstractFont;
+use Imagine\Image\BoxInterface;
+use Imagine\Image\Palette\Color\ColorInterface;
+use Imagine\Image\PointInterface;
+use Jcupitt\Vips\Align;
+use Jcupitt\Vips\BandFormat;
+use Jcupitt\Vips\Extend;
+use Jcupitt\Vips\Image as VipsImage;
+
+class Drawer implements DrawerInterface
+{
+    public function __construct(Image $image)
+    {
+        $this->image = $image;
+    }
+
+    public function text(
+        $string,
+        AbstractFont $font,
+        PointInterface $position,
+        $angle = 0,
+        $width = null
+    ) {
+        $this->textWithHeight($string, $font, $position, $angle, $width);
+    }
+
+    public function textWithHeight(
+        $string,
+        AbstractFont $font,
+        PointInterface $position,
+        $angle = 0,
+        $width = null,
+        $height = null
+        ) {
+        $size = $font->getSize();
+        $resize = 4;
+        $colors = Image::getColorArrayAlpha($font->getColor());
+        $alpha = array_pop($colors);
+        $FL = \FontLib\Font::load($font->getFile());
+        $text = $this->image->getVips()->text($string, [
+            'font' => $FL->getFontFullName().' '.$size * $resize,
+            'fontfile' => $font->getFile(),
+           'width' => $width * $resize,
+            //'dpi' => 72,
+            //FIXME: Need to be an option
+            //'align' => Align::CENTRE,
+            'spacing' => 0,
+        ]);
+
+        if (0 !== $angle) {
+            $text = $text->similarity(['angle' => $angle]);
+        }
+
+        $red = $text->newFromImage($colors)->copy(['interpretation' => 'srgb']);
+        $overlay = $red->bandjoin($text);
+
+        $overlay = $overlay->multiply([1, 1, 1, (255 - $alpha) / 255]);
+
+        $overlay = $overlay->resize(1 / $resize);
+
+        $newWidth = $overlay->width;
+        $newHeight = $overlay->height;
+        if (null !== $width && $overlay->width < $width) {
+            $newWidth = $width;
+        }
+        if (null !== $height && $overlay->height < $height) {
+            $newHeight = $height;
+        }
+        //FIXME: only center it when option set
+        if ($newHeight !== $overlay->height || $newWidth !== $overlay->width) {
+            $pixel = VipsImage::black(1, 1)->cast(BandFormat::UCHAR);
+            $pixel = $pixel->embed(0, 0, $newWidth, $newHeight, ['extend' => Extend::COPY]);
+
+            $overlay = $pixel->insert($overlay, (int) ($newWidth - $overlay->width) / 2, ($newHeight - $overlay->height) / 2);
+        }
+
+        $vips = $this->image->getVips();
+        if (!$vips->hasAlpha()) {
+            $vips = $vips->bandjoin([0]);
+        }
+        //$vips = $vips->premultiply();
+        $vips = $this->image->pasteVipsImage($overlay, $position);
+        $this->image->setVips($vips);
+    }
+
+    public function arc(PointInterface $center, BoxInterface $size, $start, $end, ColorInterface $color, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function chord(PointInterface $center, BoxInterface $size, $start, $end, ColorInterface $color, $fill = false, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function dot(PointInterface $position, ColorInterface $color)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function circle(PointInterface $center, $radius, ColorInterface $color, $fill = false, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function ellipse(PointInterface $center, BoxInterface $size, ColorInterface $color, $fill = false, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function line(PointInterface $start, PointInterface $end, ColorInterface $outline, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function pieSlice(PointInterface $center, BoxInterface $size, $start, $end, ColorInterface $color, $fill = false, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function polygon(array $coordinates, ColorInterface $color, $fill = false, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+
+    public function rectangle(PointInterface $leftTop, PointInterface $rightBottom, ColorInterface $color, $fill = false, $thickness = 1)
+    {
+        throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
+    }
+}
