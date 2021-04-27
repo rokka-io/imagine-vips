@@ -55,6 +55,7 @@ class Image extends AbstractImage
     public const OPTION_WEBP_QUALITY = 'webp_quality';
     public const OPTION_HEIF_QUALITY = 'heif_quality';
     public const OPTION_AVIF_QUALITY = 'avif_quality';
+    public const OPTION_JXL_QUALITY = 'jxl_quality';
     public const OPTION_WEBP_LOSSLESS = 'webp_lossless';
 
     /**
@@ -972,6 +973,11 @@ class Image extends AbstractImage
         if (!isset($options[self::OPTION_JPEG_QUALITY]) && \in_array($format, ['jpeg', 'jpg', 'pjpeg'], true)) {
             $options[self::OPTION_JPEG_QUALITY] = 92;
         }
+
+        if (!isset($options[self::OPTION_JXL_QUALITY]) && \in_array($format, ['jxl'], true)) {
+            $options[self::OPTION_JXL_QUALITY] = 92;
+        }
+
         if (!isset($options[self::OPTION_PNG_QUALITY]) && \in_array($format, ['png'], true)) {
             $options[self::OPTION_PNG_QUALITY] = 100; // don't do pngquant, if set to 100
         }
@@ -1070,6 +1076,9 @@ class Image extends AbstractImage
         if ('jpg' == $format || 'jpeg' == $format) {
             $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JPEG_QUALITY], 'interlace' => true], $options);
             $method = 'jpegsave';
+        } elseif ('jxl' == $format ) {
+            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JXL_QUALITY]], $options);
+            $method = 'jxlsave';
         } elseif ('png' == $format) {
             $pngOptions = ['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]];
             if ($options[self::OPTION_PNG_QUALITY] < 100) {
