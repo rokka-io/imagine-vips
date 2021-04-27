@@ -36,20 +36,30 @@ class Drawer implements DrawerInterface
         PointInterface $position,
         $angle = 0,
         $width = null,
-        $height = null
-        ) {
+        $height = null,
+        $align = 'centre'
+    ) {
         $size = $font->getSize();
         $resize = 4;
         $colors = Image::getColorArrayAlpha($font->getColor());
         $alpha = array_pop($colors);
         $FL = \FontLib\Font::load($font->getFile());
+
+        switch ($align) {
+            case 'left':
+                $vipsAlign = Align::LOW;
+                break;
+            case 'right':
+                $vipsAlign = Align::HIGH;
+                break;
+            default:
+                $vipsAlign = Align::CENTRE;
+        }
         $text = $this->image->getVips()->text($string, [
             'font' => $FL->getFontFullName().' '.$size * $resize,
             'fontfile' => $font->getFile(),
-           'width' => $width * $resize,
-            //'dpi' => 72,
-            //FIXME: Need to be an option
-            //'align' => Align::CENTRE,
+            'width' => $width * $resize,
+            'align' => $vipsAlign,
             'spacing' => 0,
         ]);
 
@@ -77,7 +87,13 @@ class Drawer implements DrawerInterface
             $pixel = VipsImage::black(1, 1)->cast(BandFormat::UCHAR);
             $pixel = $pixel->embed(0, 0, $newWidth, $newHeight, ['extend' => Extend::COPY]);
 
-            $overlay = $pixel->insert($overlay, (int) ($newWidth - $overlay->width) / 2, ($newHeight - $overlay->height) / 2);
+            if ('centre' === $align) {
+                $overlay = $pixel->insert($overlay, (int) ($newWidth - $overlay->width) / 2, ($newHeight - $overlay->height) / 2);
+            } elseif ('left' === $align) {
+                $overlay = $pixel->insert($overlay, (int) 0, ($newHeight - $overlay->height) / 2);
+            } elseif ('right' === $align) {
+                $overlay = $pixel->insert($overlay, (int) $newWidth - $overlay->width, ($newHeight - $overlay->height) / 2);
+            }
         }
 
         $vips = $this->image->getVips();
