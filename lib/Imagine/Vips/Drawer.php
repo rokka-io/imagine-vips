@@ -101,7 +101,6 @@ class Drawer implements DrawerInterface
         if (null !== $height && $overlay->height < $height) {
             $newHeight = $height;
         }
-        //FIXME: only center it when option set
         if ($newHeight !== $overlay->height || $newWidth !== $overlay->width) {
             $pixel = VipsImage::black(1, 1)->cast(BandFormat::UCHAR);
             $pixel = $pixel->embed(0, 0, $newWidth, $newHeight, ['extend' => Extend::COPY]);
