@@ -56,7 +56,7 @@ If you have vips 8.7.0, layers and animated gifs should work like with imagick.
 
 ## Saving files
 
-Natively supported by libvips for saving are jpg, png, webp and tiff. If you have vips 8.7.0 with imagemagick support, it will use vips "[magicksave](https://jcupitt.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave)" for all other formats. It not, this adapter falls back to the Imagick or GD implementation.
+Natively supported by libvips for saving are jpg, png, webp and tiff. If you have vips 8.7.0 with imagemagick support, it will use vips "[magicksave](https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave)" for all other formats. It not, this adapter falls back to the Imagick or GD implementation.
 
 ## Contribution
 
