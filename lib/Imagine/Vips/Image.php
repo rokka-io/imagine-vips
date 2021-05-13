@@ -56,6 +56,9 @@ class Image extends AbstractImage
     public const OPTION_HEIF_QUALITY = 'heif_quality';
     public const OPTION_AVIF_QUALITY = 'avif_quality';
     public const OPTION_JXL_QUALITY = 'jxl_quality';
+    public const OPTION_JXL_DISTANCE = 'jxl_distance';
+    public const OPTION_JXL_EFFORT = 'jxl_effort';
+    public const OPTION_JXL_LOSSLESS = 'jxl_lossless';
     public const OPTION_WEBP_LOSSLESS = 'webp_lossless';
 
     /**
@@ -977,6 +980,9 @@ class Image extends AbstractImage
         if (!isset($options[self::OPTION_JXL_QUALITY]) && \in_array($format, ['jxl'], true)) {
             $options[self::OPTION_JXL_QUALITY] = 92;
         }
+        if (!isset($options[self::OPTION_JXL_LOSSLESS]) && \in_array($format, ['jxl'], true)) {
+            $options[self::OPTION_JXL_LOSSLESS] = false;
+        }
 
         if (!isset($options[self::OPTION_PNG_QUALITY]) && \in_array($format, ['png'], true)) {
             $options[self::OPTION_PNG_QUALITY] = 100; // don't do pngquant, if set to 100
@@ -1077,7 +1083,20 @@ class Image extends AbstractImage
             $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JPEG_QUALITY], 'interlace' => true], $options);
             $method = 'jpegsave';
         } elseif ('jxl' == $format ) {
-            $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JXL_QUALITY]], $options);
+            $jxlOptions = [
+                'strip' => $this->strip,
+                'lossless' => $options[self::OPTION_JXL_LOSSLESS]
+            ];
+            if (isset($options[self::OPTION_JXL_DISTANCE])) {
+                $jxlOptions['distance'] = $options[self::OPTION_JXL_DISTANCE];
+            } else {
+                $jxlOptions['Q'] = $options[self::OPTION_JXL_QUALITY];
+            }
+
+            if (isset($options[self::OPTION_JXL_EFFORT])) {
+                $jxlOptions['effort'] = $options[self::OPTION_JXL_EFFORT];
+            }
+            $saveOptions = $this->applySaveOptions($jxlOptions, $options);
             $method = 'jxlsave';
         } elseif ('png' == $format) {
             $pngOptions = ['strip' => $this->strip, 'compression' => $options[self::OPTION_PNG_COMPRESSION_LEVEL]];
