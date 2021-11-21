@@ -1128,7 +1128,13 @@ class Image extends AbstractImage
             $saveOptions = $this->applySaveOptions(['Q' => $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1', 'strip' => $this->strip], $options);
             $method = 'heifsave';
         } elseif ('gif' == $format) {
-            $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
+            if ( version_compare(vips_version(), '8.12.0', '>=')) {
+                $saveOptions = $this->applySaveOptions([], $options);
+                $method = 'gifsave';
+            } else {
+                $saveOptions = $this->applySaveOptions(['format' => 'gif'], $options);
+                $method = 'magicksave';
+            }
             $delayProperty = 'delay';
             if (version_compare(vips_version(), '8.9', '<')) {
                 $delayProperty = 'gif-delay';
@@ -1136,7 +1142,8 @@ class Image extends AbstractImage
             if (0 === $this->vips->typeof($delayProperty)) {
                 $this->layers()->animate('gif', Layers::DEFAULT_GIF_DELAY, 0);
             }
-            $method = 'magicksave';
+
+
         } elseif ('jp2' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'jp2', 'quality' => $options['jp2_quality']], $options);
             $method = 'magicksave';
