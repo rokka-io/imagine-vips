@@ -644,19 +644,18 @@ class Image extends AbstractImage
      */
     public function pixelToColor(array $pixel)
     {
-        if ($this->palette->supportsAlpha() && $this->vips->hasAlpha()) {
-            $alpha = array_pop($pixel) / 255 * 100;
+        if ($this->vips->hasAlpha()) {
+            $alpha = (int)(array_pop($pixel) / 255 * 100);
         } else {
-            $alpha = null;
+            $alpha = $this->palette->supportsAlpha() ? 100 : null;
         }
         if ($this->palette() instanceof RGB) {
-            return $this->palette()->color($pixel, (int) $alpha);
+            return $this->palette()->color($pixel, $alpha);
         }
         if ($this->palette() instanceof Grayscale) {
-            $alpha = array_pop($pixel) / 255 * 100;
             $g = (int) $pixel[0];
 
-            return $this->palette()->color([$g, $g, $g], (int) $alpha);
+            return $this->palette()->color([$g, $g, $g], $alpha);
         }
 
         throw new NotSupportedException('Image has a not supported palette');
