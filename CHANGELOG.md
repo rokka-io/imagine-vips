@@ -1,10 +1,11 @@
 # CHANGELOG
 
-### 0.14.0 (unreleased)
+### 0.14.0 (2021-12-09)
   * Add Drawer::text() support
   * Add JPEG-XL (jxl) support (needs libvips 8.11 with builtin support)
   * Remove support for PHP 7.0, minimum is now PHP 7.1
   * Use gifsave, when vips 8.12 is installed (needs the cgif library)
+  * Fixed two bugs when converting pixel to color (thanks to @chmgr #21)
 
 ### 0.13.0 (2021-02-22)
   * Add PHP 8 compatibility

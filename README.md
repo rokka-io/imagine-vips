@@ -40,8 +40,7 @@ Needs vips 8.6 or higher:
 
 Not implemented yet
  
- * Font
- * Drawer
+ * Complete Drawer support, only text is. 
  * Methods:
    * fill
    * histogram
