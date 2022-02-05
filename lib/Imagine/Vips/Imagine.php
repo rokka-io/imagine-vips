@@ -203,6 +203,7 @@ class Imagine extends AbstractImagine
                 break;
             case 'VipsForeignLoadGifFile':
             case 'VipsForeignLoadGifBuffer':
+            case 'VipsForeignLoadNsgifBuffer':    
                 $options['n'] = -1; // not sure this should be enabled by default, to discuss
                 break;
         }
