@@ -22,6 +22,7 @@ use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Profile;
 use Imagine\Image\VipsProfile;
+use Jcupitt\Vips\Config;
 use Jcupitt\Vips\Exception;
 use Jcupitt\Vips\Image as VipsImage;
 use Jcupitt\Vips\Interpretation;
@@ -55,16 +56,16 @@ class Imagine extends AbstractImagine
         foreach ($config as $key => $value) {
             switch ($key) {
                 case 'max_mem':
-                    vips_cache_set_max_mem($value);
+                    Config::cacheSetMaxMem($value);
                     break;
                 case 'max_ops':
-                    vips_cache_set_max($value);
+                    Config::cacheSetMax($value);
                     break;
                 case 'max_files':
-                    vips_cache_set_max_files($value);
+                    Config::cacheSetMaxFiles($value);
                     break;
                 case 'concurrency':
-                    vips_concurrency_set($value);
+                    Config::concurrencySet($value);
                     break;
             }
         }
