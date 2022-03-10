@@ -50,9 +50,8 @@ class Imagine extends AbstractImagine
      */
     public function __construct(array $config = [])
     {
-
-        if (method_exists(Config::class, 'max_mem')) {
-            if (!extension_loaded('ffi')) {
+        if (method_exists(Config::class, 'ffi')) {
+            if (!\extension_loaded('ffi')) {
                 throw new RuntimeException('ffi extension not installed');
             }
             foreach ($config as $key => $value) {
@@ -71,10 +70,11 @@ class Imagine extends AbstractImagine
                         break;
                 }
             }
+
             return;
         }
         // php-vips 1.0
-        if (function_exists("vips_cache_set_max_mem")) {
+        if (\function_exists('vips_cache_set_max_mem')) {
             foreach ($config as $key => $value) {
                 switch ($key) {
                     case 'max_mem':
