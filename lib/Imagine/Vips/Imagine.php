@@ -50,25 +50,51 @@ class Imagine extends AbstractImagine
      */
     public function __construct(array $config = [])
     {
-        if (!extension_loaded('vips')) {
-            throw new RuntimeException('Vips not installed');
-        }
-        foreach ($config as $key => $value) {
-            switch ($key) {
-                case 'max_mem':
-                    Config::cacheSetMaxMem($value);
-                    break;
-                case 'max_ops':
-                    Config::cacheSetMax($value);
-                    break;
-                case 'max_files':
-                    Config::cacheSetMaxFiles($value);
-                    break;
-                case 'concurrency':
-                    Config::concurrencySet($value);
-                    break;
+
+        if (method_exists(Config::class, 'max_mem')) {
+            if (!extension_loaded('ffi')) {
+                throw new RuntimeException('ffi extension not installed');
             }
+            foreach ($config as $key => $value) {
+                switch ($key) {
+                    case 'max_mem':
+                        Config::cacheSetMaxMem($value);
+                        break;
+                    case 'max_ops':
+                        Config::cacheSetMax($value);
+                        break;
+                    case 'max_files':
+                        Config::cacheSetMaxFiles($value);
+                        break;
+                    case 'concurrency':
+                        Config::concurrencySet($value);
+                        break;
+                }
+            }
+            return;
         }
+        // php-vips 1.0
+        if (function_exists("vips_cache_set_max_mem")) {
+            foreach ($config as $key => $value) {
+                switch ($key) {
+                    case 'max_mem':
+                        vips_cache_set_max_mem($value);
+                        break;
+                    case 'max_ops':
+                        vips_cache_set_max($value);
+                        break;
+                    case 'max_files':
+                        vips_cache_set_max_files($value);
+                        break;
+                    case 'concurrency':
+                        vips_concurrency_set($value);
+                        break;
+                }
+            }
+            return;
+        }
+        throw new RuntimeException('Vips or php-vips 2.0 not installed');
+
     }
 
     public function open($path, $loadOptions = [])
