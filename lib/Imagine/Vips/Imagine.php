@@ -196,6 +196,33 @@ class Imagine extends AbstractImagine
         return $palette;
     }
 
+
+    /**
+     * Checks, if the necessary Libraries are installed
+     * @return bool
+     */
+    public static function hasVipsInstalled()
+    {
+        try {
+            // this method only exists in php-vips 2.0
+            if (\method_exists(Config::class, 'ffi')) {
+                // if ffi extension is not installed, we can't use php-vips
+                if (!\extension_loaded('ffi')) {
+                    return false;
+                }
+                // this will throw an exception, if libvips is not installed
+                // will return false in the catch block
+                Config::version();
+
+                return true;
+            }
+            // if we're still on php-vips 1.0, check if 'vips' extension is installed
+            return \extension_loaded('vips');
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
     protected function getLoadOptions($loader, $loadOptions = [])
     {
         $options = [];
