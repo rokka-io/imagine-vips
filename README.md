@@ -4,7 +4,10 @@ This package provides a [libvips](https://github.com/libvips/libvips) integratio
 
 Version 8.7 or higher of libvips is highly recommended. `paste` and `rotate` by angles other than multipliers of 90 are not supported with older versions of libvips.
  
-You also need the [php-vips-ext](https://github.com/libvips/php-vips-ext) extension version 1.0.8 or higher (you need to install that manually) and the [php-vips](https://github.com/libvips/php-vips) classes (automatically installed by composer)
+You either need the [PHP FFI](https://www.php.net/manual/en/book.ffi.php) extension (recommended, since that's the currently supported way by the libvips maintainer) or the 
+[php-vips-ext](https://github.com/libvips/php-vips-ext) extension version 1.0.8 or higher (you need to install that manually). 
+And the [php-vips](https://github.com/libvips/php-vips) classes (automatically installed by composer)
+
 
 The most (to us at least) important stuff is implemented. There may be edge cases, which are not covered yet, but those will be hopefully fixed soon. Report them, if you encounter one.
 

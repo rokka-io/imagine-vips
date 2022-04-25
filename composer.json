@@ -53,10 +53,5 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.8"
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-php-vips-2.0": "0.15.x-dev"
-        }
     }
 }
