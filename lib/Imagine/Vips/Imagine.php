@@ -22,6 +22,7 @@ use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Profile;
 use Imagine\Image\VipsProfile;
+use Jcupitt\Vips\Config;
 use Jcupitt\Vips\Exception;
 use Jcupitt\Vips\Image as VipsImage;
 use Jcupitt\Vips\Interpretation;
@@ -49,22 +50,29 @@ class Imagine extends AbstractImagine
      */
     public function __construct(array $config = [])
     {
-        if (!extension_loaded('vips')) {
-            throw new RuntimeException('Vips not installed');
+        if (method_exists(Config::class, 'ffi')) {
+            if (!\extension_loaded('ffi')) {
+                throw new RuntimeException('ffi extension not installed');
+            }
+        } else {
+            if (!\extension_loaded('vips')) {
+                throw new RuntimeException('vips extension not installed');
+
+            }
         }
         foreach ($config as $key => $value) {
             switch ($key) {
                 case 'max_mem':
-                    vips_cache_set_max_mem($value);
+                    Config::cacheSetMaxMem($value);
                     break;
                 case 'max_ops':
-                    vips_cache_set_max($value);
+                    Config::cacheSetMax($value);
                     break;
                 case 'max_files':
-                    vips_cache_set_max_files($value);
+                    Config::cacheSetMaxFiles($value);
                     break;
                 case 'concurrency':
-                    vips_concurrency_set($value);
+                    Config::concurrencySet($value);
                     break;
             }
         }
@@ -186,6 +194,33 @@ class Imagine extends AbstractImagine
         }
 
         return $palette;
+    }
+
+
+    /**
+     * Checks, if the necessary Libraries are installed
+     * @return bool
+     */
+    public static function hasVipsInstalled()
+    {
+        try {
+            // this method only exists in php-vips 2.0
+            if (\method_exists(Config::class, 'ffi')) {
+                // if ffi extension is not installed, we can't use php-vips
+                if (!\extension_loaded('ffi')) {
+                    return false;
+                }
+                // this will throw an exception, if libvips is not installed
+                // will return false in the catch block
+                Config::version();
+
+                return true;
+            }
+            // if we're still on php-vips 1.0, check if 'vips' extension is installed
+            return \extension_loaded('vips');
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     protected function getLoadOptions($loader, $loadOptions = [])

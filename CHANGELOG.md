@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### 0.20.0 (unreleased)
+  * Uses the new FFI based libvips/php-vips (2.0) library, if FFI is installed. 
+    If FFI is not installed, still uses the old library, which needs the 
+    libvips/php-vips-ext extension.
+
 ### 0.14.0 (2021-12-09)
   * Add Drawer::text() support
   * Add JPEG-XL (jxl) support (needs libvips 8.11 with builtin support)
