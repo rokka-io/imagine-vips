@@ -1,6 +1,6 @@
 # CHANGELOG
 
-### 0.20.0 (unreleased)
+### 0.20.0 (2022-04-29)
   * Uses the new FFI based libvips/php-vips (2.0) library, if FFI is installed. 
     If FFI is not installed, still uses the old library, which needs the 
     libvips/php-vips-ext extension.
