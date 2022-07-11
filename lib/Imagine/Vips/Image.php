@@ -1127,7 +1127,7 @@ class Image extends AbstractImage
             $saveOptions = $this->applySaveOptions(['Q' => $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1', 'strip' => $this->strip], $options);
             $method = 'heifsave';
         } elseif ('gif' == $format) {
-            if ( version_compare(vips_version(), '8.12.0', '>=')) {
+            if (version_compare(vips_version(), '8.12.0', '>=') && !(isset($options['force_magick']) && true === $options['force_magick'])) {
                 $saveOptions = $this->applySaveOptions([], $options);
                 $method = 'gifsave';
             } else {
