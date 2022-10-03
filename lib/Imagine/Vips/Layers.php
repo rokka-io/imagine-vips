@@ -138,6 +138,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->extractAt($this->offset);
@@ -146,6 +147,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->offset;
@@ -154,6 +156,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function next()
     {
         ++$this->offset;
@@ -162,6 +165,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->offset = 0;
@@ -170,6 +174,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         return $this->offset < count($this);
@@ -178,6 +183,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return $this->count;
@@ -186,6 +192,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return is_int($offset) && $offset >= 0 && $offset < count($this);
@@ -194,6 +201,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->extractAt($offset);
@@ -202,6 +210,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $image)
     {
         if ($offset === null) {
@@ -227,6 +236,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         throw new NotSupportedException("Removing frames is not supported yet.");
