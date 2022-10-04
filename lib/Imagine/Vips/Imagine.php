@@ -20,7 +20,6 @@ use Imagine\Image\Palette\Color\ColorInterface;
 use Imagine\Image\Palette\Grayscale;
 use Imagine\Image\Palette\PaletteInterface;
 use Imagine\Image\Palette\RGB;
-use Imagine\Image\Profile;
 use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\Config;
 use Jcupitt\Vips\Exception;
@@ -44,8 +43,6 @@ class Imagine extends AbstractImagine
      * max_files -> vips_cache_set_max_files
      * concurrency -> vips_concurrency_set
      *
-     * @param array $config
-     *
      * @throws RuntimeException
      */
     public function __construct(array $config = [])
@@ -57,7 +54,6 @@ class Imagine extends AbstractImagine
         } else {
             if (!\extension_loaded('vips')) {
                 throw new RuntimeException('vips extension not installed');
-
             }
         }
         foreach ($config as $key => $value) {
@@ -86,9 +82,10 @@ class Imagine extends AbstractImagine
             $loader = VipsImage::findLoad($path);
             $loadOptions = $this->getLoadOptions($loader, $loadOptions);
             $vips = VipsImage::newFromFile($path, $loadOptions);
-            if ($loader === 'VipsForeignLoadTiffFile') {
+            if ('VipsForeignLoadTiffFile' === $loader) {
                 $vips = $this->removeUnnecessaryAlphaChannels($vips);
             }
+
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readFile($path));
         } catch (\Exception $e) {
             throw new RuntimeException(sprintf('Unable to open image %s', $path), $e->getCode(), $e);
@@ -114,27 +111,29 @@ class Imagine extends AbstractImagine
             $loader = VipsImage::findLoadBuffer($string);
             $loadOptions = $this->getLoadOptions($loader, $loadOptions);
             $vips = VipsImage::newFromBuffer($string, '', $loadOptions);
-            if ($loader === 'VipsForeignLoadTiffBuffer') {
+            if ('VipsForeignLoadTiffBuffer' === $loader) {
                 $vips = $this->removeUnnecessaryAlphaChannels($vips);
             }
+
             return new Image($vips, self::createPalette($vips), $this->getMetadataReader()->readData($string));
         } catch (\Exception $e) {
             // sometimes we have files with colorspaces vips does not support (heic files for eaxample),
             // let's try loading them with imagick,
             // and convert them to png and then load again with vips.
             // not the fastest thing, of course, but fine for our usecase
-            if (strpos($e->getMessage(), 'magickload_buffer: unsupported colorspace') !== false && class_exists('Imagick')) {
+            if (false !== strpos($e->getMessage(), 'magickload_buffer: unsupported colorspace') && class_exists('Imagick')) {
                 $im = new \Imagick();
                 $im->readImageBlob($string);
                 $im->setFormat('png');
+
                 return $this->load($im->getImageBlob(), $loadOptions);
             }
 
-            if ($e->getMessage() === 'gifload_buffer: Image is defective, decoding aborted') {
+            if ('gifload_buffer: Image is defective, decoding aborted' === $e->getMessage()) {
                 throw new RuntimeException('Image is defective, decoding aborted', $e->getCode(), $e);
             }
 
-            throw new RuntimeException('Could not load image from string. Message: ' . $e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException('Could not load image from string. Message: '.$e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -143,7 +142,7 @@ class Imagine extends AbstractImagine
      */
     public function read($resource)
     {
-        if (!is_resource($resource)) {
+        if (!\is_resource($resource)) {
             throw new InvalidArgumentException('Variable does not contain a stream resource');
         }
 
@@ -162,8 +161,6 @@ class Imagine extends AbstractImagine
 
     /**
      * Returns the palette corresponding to an VIPS resource colorspace.
-     *
-     * @param VipsImage $vips
      *
      * @throws NotSupportedException
      *
@@ -196,16 +193,16 @@ class Imagine extends AbstractImagine
         return $palette;
     }
 
-
     /**
-     * Checks, if the necessary Libraries are installed
+     * Checks, if the necessary Libraries are installed.
+     *
      * @return bool
      */
     public static function hasVipsInstalled()
     {
         try {
             // this method only exists in php-vips 2.0
-            if (\method_exists(Config::class, 'ffi')) {
+            if (method_exists(Config::class, 'ffi')) {
                 // if ffi extension is not installed, we can't use php-vips
                 if (!\extension_loaded('ffi')) {
                     return false;
@@ -255,6 +252,7 @@ class Imagine extends AbstractImagine
                     unset($options['shrink']);
                }
         }
+
         return $options;
     }
 
@@ -263,6 +261,7 @@ class Imagine extends AbstractImagine
      * Not sure, this is the right approach, but good enough for now.
      *
      * @param Image $vips
+     *
      * @return Image
      */
     protected function removeUnnecessaryAlphaChannels($vips)
@@ -273,6 +272,7 @@ class Imagine extends AbstractImagine
             $lastVipsWithAlpha = $vips;
             $vips = $vips->extract_band(0, ['n' => $vips->bands - 1]);
         }
+
         return $lastVipsWithAlpha;
     }
 }

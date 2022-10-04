@@ -77,11 +77,6 @@ class VipsProfile implements ProfileInterface
         return new self(basename($path), file_get_contents($path), $path);
     }
 
-    /**
-     * @param string $profile
-     *
-     * @return string
-     */
     protected static function getTmpFileFromRawData(string $profile): string
     {
         $profileMd5 = md5($profile);

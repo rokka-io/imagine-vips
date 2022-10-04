@@ -72,10 +72,12 @@ class Image extends AbstractImage
      * @var VipsImage
      */
     protected $vips;
+
     /**
-     * @var Layers
+     * @var \Imagine\Image\LayersInterface
      */
     protected $layers;
+
     /**
      * @var PaletteInterface
      */
@@ -104,7 +106,7 @@ class Image extends AbstractImage
         $this->metadata = $metadata;
         $this->palette = $palette;
         $this->layers = new Layers($this);
-        if ($palette instanceof  CMYK) {
+        if ($palette instanceof CMYK) {
             //convert to RGB when it's CMYK to make life much easier later on.
             // If someone really needs CMYK support, there's lots of stuff failing, which needs to be fixed
             // But  it could be added.
@@ -380,7 +382,7 @@ class Image extends AbstractImage
      */
     public function rotate($angle, ColorInterface $background = null)
     {
-        $color = $background ? $background : $this->palette->color('fff');
+        $color = $background ?: $this->palette->color('fff');
         try {
             $this->applyToLayers(function (VipsImage $vips) use ($angle, $color): VipsImage {
                 switch ($angle) {
@@ -630,7 +632,7 @@ class Image extends AbstractImage
         if (\is_array($pixel)) {
             return $this->pixelToColor($pixel);
         }
-        throw new RuntimeException(sprintf('Error getting color at point. Was not an array.'));
+        throw new RuntimeException('Error getting color at point. Was not an array.');
     }
 
     /**
@@ -645,7 +647,7 @@ class Image extends AbstractImage
     public function pixelToColor(array $pixel)
     {
         if ($this->vips->hasAlpha()) {
-            $alpha = (int)(array_pop($pixel) / 255 * 100);
+            $alpha = (int) (array_pop($pixel) / 255 * 100);
         } else {
             $alpha = $this->palette->supportsAlpha() ? 100 : null;
         }
@@ -756,6 +758,7 @@ class Image extends AbstractImage
     /**
      * @param ImagineInterface|null $imagine     the alternative imagine interface to use, autodetects, if not set
      * @param array                 $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
+     * @param bool                  $asTiff
      *
      * @return ImageInterface
      */
@@ -790,6 +793,9 @@ class Image extends AbstractImage
             return $image;
         }
         $i = 0;
+        if (!($this->layers() instanceof Layers)) {
+            throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.$image->layers()::class);
+        }
         foreach ($this->layers()->getResources() as $res) {
             if (0 == $i) {
                 ++$i;
@@ -903,6 +909,7 @@ class Image extends AbstractImage
 
     /**
      * @param array|null $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
+     * @param mixed      $asTiff
      *
      * @return string
      */
@@ -913,6 +920,7 @@ class Image extends AbstractImage
         if ($asTiff) {
             return $res->tiffsave_buffer($options);
         }
+
         return $res->pngsave_buffer($options);
     }
 
@@ -1081,10 +1089,10 @@ class Image extends AbstractImage
         if ('jpg' == $format || 'jpeg' == $format) {
             $saveOptions = $this->applySaveOptions(['strip' => $this->strip, 'Q' => $options[self::OPTION_JPEG_QUALITY], 'interlace' => true], $options);
             $method = 'jpegsave';
-        } elseif ('jxl' == $format ) {
+        } elseif ('jxl' == $format) {
             $jxlOptions = [
                 'strip' => $this->strip,
-                'lossless' => $options[self::OPTION_JXL_LOSSLESS]
+                'lossless' => $options[self::OPTION_JXL_LOSSLESS],
             ];
             if (isset($options[self::OPTION_JXL_DISTANCE])) {
                 $jxlOptions['distance'] = $options[self::OPTION_JXL_DISTANCE];
@@ -1141,8 +1149,6 @@ class Image extends AbstractImage
             if (0 === $this->vips->typeof($delayProperty)) {
                 $this->layers()->animate('gif', Layers::DEFAULT_GIF_DELAY, 0);
             }
-
-
         } elseif ('jp2' == $format) {
             $saveOptions = $this->applySaveOptions(['format' => 'jp2', 'quality' => $options['jp2_quality']], $options);
             $method = 'magicksave';
@@ -1188,7 +1194,7 @@ class Image extends AbstractImage
      * @throws \Imagine\Exception\RuntimeException
      * @throws \Jcupitt\Vips\Exception
      */
-    private function joinMultilayer($format, self $image): \Jcupitt\Vips\Image
+    private function joinMultilayer($format, self $image): VipsImage
     {
         $vips = $this->getVips();
         if ((('webp' === $format && version_compare(vips_version(), '8.8.0', '>='))
@@ -1199,6 +1205,9 @@ class Image extends AbstractImage
             $width = $vips->width;
             $vips->set('page-height', $height);
 
+            if (!($image->layers() instanceof Layers)) {
+                throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.$image->layers()::class);
+            }
             foreach ($image->layers()->getResources() as $_k => $_v) {
                 if (0 === $_k) {
                     continue;

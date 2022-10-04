@@ -20,9 +20,8 @@ use Jcupitt\Vips\Image as VipsImage;
 final class Font extends AbstractFont
 {
     /**
-     * @param string         $file
-     * @param int            $size
-     * @param ColorInterface $color
+     * @param string $file
+     * @param int    $size
      */
     public function __construct($file, $size, ColorInterface $color)
     {
