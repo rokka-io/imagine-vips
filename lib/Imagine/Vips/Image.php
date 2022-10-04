@@ -794,7 +794,7 @@ class Image extends AbstractImage
         }
         $i = 0;
         if (!($this->layers() instanceof Layers)) {
-            throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.$image->layers()::class);
+            throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.get_class($image->layers()));
         }
         foreach ($this->layers()->getResources() as $res) {
             if (0 == $i) {
@@ -1206,7 +1206,7 @@ class Image extends AbstractImage
             $vips->set('page-height', $height);
 
             if (!($image->layers() instanceof Layers)) {
-                throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.$image->layers()::class);
+                throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.get_class($image->layers()));
             }
             foreach ($image->layers()->getResources() as $_k => $_v) {
                 if (0 === $_k) {

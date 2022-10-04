@@ -1,4 +1,8 @@
 # libvips adapter for Imagine
+
+[![Static analysis](https://github.com/rokka-io/imagine-vips/actions/workflows/static.yml/badge.svg)](https://github.com/rokka-io/imagine-vips/actions/workflows/static.yml)
+[![Latest Stable Version](https://poser.pugx.org/rokka/imagine-vips/version.png)](https://packagist.org/packages/rokka/imagine-vips)
+
  
 This package provides a [libvips](https://github.com/libvips/libvips) integration for [Imagine](https://imagine.readthedocs.io/en/latest/). The [VIPS image processing system](https://libvips.github.io/libvips/) is a very fast, multi-threaded image processing library with low memory needs.
 
