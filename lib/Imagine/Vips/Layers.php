@@ -15,13 +15,11 @@ use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
 use Imagine\Image\Metadata\MetadataBag;
-use Imagine\Image\Point;
 use Jcupitt\Vips\BlendMode;
 use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
 {
-
     public const DEFAULT_GIF_DELAY = 100;
 
     /**
@@ -46,17 +44,16 @@ class Layers extends AbstractLayers
      */
     private $count = 0;
 
-    public function __construct(Image $image, Layers $layers = null)
+    public function __construct(Image $image, self $layers = null)
     {
         $this->image = $image;
 
         $vips = $image->getVips();
         //try extracting layers
-        if ($layers !== null) {
+        if (null !== $layers) {
             $this->layers = $layers->layers;
             $this->resources = $layers->resources;
-            $this->count = count($layers->resources) + count($this->layers);
-
+            $this->count = \count($layers->resources) + \count($this->layers);
         } else {
             try {
                 if ($vips->get('page-height')) {
@@ -71,11 +68,11 @@ class Layers extends AbstractLayers
             } catch (Exception $e) {
                 $this->resources[0] = $vips;
             }
-            $this->count = count($this->resources);
+            $this->count = \count($this->resources);
             //always set the first layer
             $this->layers[0] = $this->image;
             // we don't need it, it's in $this->image
-            unset( $this->resources[0]);
+            unset($this->resources[0]);
         }
     }
 
@@ -95,11 +92,11 @@ class Layers extends AbstractLayers
         if (version_compare(vips_version(), '8.9', '<')) {
             $vips->set('gif-delay', $delay / 10);
         } else {
-            $vips->set('delay', array_fill(0, count($this), $delay));
+            $vips->set('delay', array_fill(0, \count($this), $delay));
         }
-        $vips->set('gif-loop', $loops );
-        if($vips->typeof('page-height') === 0) {
-            $vips->set("page-height", (int) ($vips->height / count($this)));
+        $vips->set('gif-loop', $loops);
+        if (0 === $vips->typeof('page-height')) {
+            $vips->set('page-height', (int) ($vips->height / \count($this)));
         }
         $this->image->setVips($vips);
 
@@ -207,12 +204,12 @@ class Layers extends AbstractLayers
      */
     public function offsetSet($offset, $image): void
     {
-        if ($offset === null) {
+        if (null === $offset) {
             $offset = $this->count;
         }
 
         if (!(isset($this->layers[$offset]) || isset($this->resources[$offset]))) {
-            $this->count++;
+            ++$this->count;
         }
 
         $this->layers[$offset] = $image;
@@ -221,7 +218,7 @@ class Layers extends AbstractLayers
             unset($this->resources[$offset]);
         }
 
-        if ($this->count === 2) {
+        if (2 === $this->count) {
             $this->image->vipsCopy();
             $this->image->getVips()->set('page-height', $this->image->getVips()->height);
         }
@@ -232,43 +229,45 @@ class Layers extends AbstractLayers
      */
     public function offsetUnset($offset): void
     {
-        throw new NotSupportedException("Removing frames is not supported yet.");
+        throw new NotSupportedException('Removing frames is not supported yet.');
     }
 
     public function getResource($offset)
     {
-        if ($offset === 0) {
+        if (0 === $offset) {
             return $this->image->getVips();
         }
         // if we already have an image object for this $offset, use this
-       if (isset($this->layers[$offset])) {
+        if (isset($this->layers[$offset])) {
             return $this->layers[$offset]->getVips();
-        } else {
-            return $this->resources[$offset];
         }
+
+        return $this->resources[$offset];
     }
 
-     /**
+    /**
      * @return \Jcupitt\Vips\Image[]
      */
     public function getResources()
     {
         $resources = [];
-        $count = count($this);
-        for($i = 0; $i < $count; $i++) {
+        $count = \count($this);
+        for ($i = 0; $i < $count; ++$i) {
             $resources[$i] = $this->getResource($i);
-
         }
+
         return $resources;
     }
 
     /**
-     * Returns the delays in milliseconds per frame as array (or null, if not set yet)
+     * Returns the delays in milliseconds per frame as array (or null, if not set yet).
+     *
+     * @throws \Imagine\Exception\RuntimeException
      *
      * @return array|null
-     * @throws \Imagine\Exception\RuntimeException
      */
-    public function getDelays() {
+    public function getDelays()
+    {
         if (version_compare(vips_version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
@@ -281,13 +280,14 @@ class Layers extends AbstractLayers
     }
 
     /**
-     * Sets the delays for all the frames in an animated image
+     * Sets the delays for all the frames in an animated image.
      *
      * @param int[] $delays
      *
      * @throws \Jcupitt\Vips\Exception
      */
-    public function setDelays($delays) {
+    public function setDelays($delays)
+    {
         if (version_compare(vips_version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
@@ -296,24 +296,29 @@ class Layers extends AbstractLayers
     }
 
     /**
-     * Gets delay in milliseconds for a single frame
+     * Gets delay in milliseconds for a single frame.
      *
-     * @return int|null  Delay in miliseconds
+     * @param mixed $index
+     *
      * @throws \Imagine\Exception\RuntimeException
+     *
+     * @return int|null Delay in miliseconds
      */
-    public function getDelay($index) {
+    public function getDelay($index)
+    {
         if (version_compare(vips_version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
         $vips = $this->image->getVips();
         try {
             $delays = $this->getDelays();
-            if ($delays === null) {
+            if (null === $delays) {
                 return null;
             }
             if (isset($delays[$index])) {
-               return $delays[$index];
+                return $delays[$index];
             }
+
             return null;
         } catch (\Exception $e) {
             return null;
@@ -321,7 +326,7 @@ class Layers extends AbstractLayers
     }
 
     /**
-     * Sets delay for a single frame
+     * Sets delay for a single frame.
      *
      * @param $index int Frame number
      * @param $delay int Delay in miliseconds
@@ -330,14 +335,15 @@ class Layers extends AbstractLayers
      * @throws \Imagine\Exception\RuntimeException
      * @throws \Jcupitt\Vips\Exception
      */
-    public function setDelay($index, $delay) {
+    public function setDelay($index, $delay)
+    {
         if (version_compare(vips_version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
         $vips = $this->image->getVips();
         $delays = $this->getDelays();
-        if ($delays === null) {
-            $delays = array_fill(0,count($this), self::DEFAULT_GIF_DELAY);
+        if (null === $delays) {
+            $delays = array_fill(0, \count($this), self::DEFAULT_GIF_DELAY);
             $this->setDelays($delays);
         }
         $oldValue = null;
@@ -361,7 +367,7 @@ class Layers extends AbstractLayers
      */
     private function extractAt($offset)
     {
-        if ($offset === 0) {
+        if (0 === $offset) {
             return $this->image;
         }
         if (!isset($this->layers[$offset])) {
