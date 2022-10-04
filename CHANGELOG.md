@@ -1,5 +1,8 @@
 # CHANGELOG
 
+### 0.30.1 (2022-10-04)
+  * Fix issue with PHP < 8.0
+
 ### 0.30.0 (2022-10-04)
   * Add `force_magick` for using magicksave insteaf of gifsave
   * Make it run on PHP 8.1 without warnings
