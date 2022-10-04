@@ -1,7 +1,10 @@
 # CHANGELOG
 
-### 0.21.0 (unreleased)
+### 0.30.0 (2022-10-04)
   * Add `force_magick` for using magicksave insteaf of gifsave
+  * Make it run on PHP 8.1 without warnings
+  * Fix some other type issues
+  * BC break, if you extended \Imagine\Vips\Layers. You need to add some return types now
 
 ### 0.20.0 (2022-04-29)
   * Uses the new FFI based libvips/php-vips (2.0) library, if FFI is installed. 
