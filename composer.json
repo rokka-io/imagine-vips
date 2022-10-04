@@ -52,6 +52,10 @@
         ]
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.8"
+        "friendsofphp/php-cs-fixer": "^2.8",
+        "phpstan/phpstan": "^1.8"
+    },
+    "scripts": {
+        "phpstan": "phpstan analyze -l 3 lib/"
     }
 }

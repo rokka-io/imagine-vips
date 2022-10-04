@@ -1,0 +1,49 @@
+name: Static analysis
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  phpstan:
+    name: phpstan ${{ matrix.php }} 
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '7.2'
+          - php: '7.3'
+          - php: '7.4'
+          - php: '8.0'
+          - php: '8.1'
+
+
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install vips
+        run: sudo apt-get install -y libvips-dev
+
+      - name: Install vips extension
+        run: sudo pecl install vips
+
+      - name: Install vips ext config
+        run:  echo "extension=vips.so" >> $(php -i | grep /.+/php.ini -oE)
+
+      - name: Install composer dependencies
+        run: |
+          composer update --prefer-dist --no-interaction --no-progress --no-ansi ${COMPOSER_FLAGS}
+
+      - name: PHPStan
+        run: composer phpstan
