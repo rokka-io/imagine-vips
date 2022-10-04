@@ -101,7 +101,8 @@ class Layers extends AbstractLayers
         if($vips->typeof('page-height') === 0) {
             $vips->set("page-height", (int) ($vips->height / count($this)));
         }
-        $this->vips = $vips;
+        $this->image->setVips($vips);
+
         return $this;
     }
 
@@ -133,12 +134,14 @@ class Layers extends AbstractLayers
             $this->resources[$i] = $frame;
             ++$i;
         }
+
+        return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function current()
+    public function current(): Image
     {
         return $this->extractAt($this->offset);
     }
@@ -146,7 +149,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function key()
+    public function key(): int
     {
         return $this->offset;
     }
@@ -154,7 +157,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function next()
+    public function next(): void
     {
         ++$this->offset;
     }
@@ -162,7 +165,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->offset = 0;
     }
@@ -170,15 +173,15 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function valid()
+    public function valid(): bool
     {
-        return $this->offset < count($this);
+        return $this->offset < \count($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function count()
+    public function count(): int
     {
         return $this->count;
     }
@@ -186,15 +189,15 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
-        return is_int($offset) && $offset >= 0 && $offset < count($this);
+        return \is_int($offset) && $offset >= 0 && $offset < \count($this);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): Image
     {
         return $this->extractAt($offset);
     }
@@ -202,7 +205,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function offsetSet($offset, $image)
+    public function offsetSet($offset, $image): void
     {
         if ($offset === null) {
             $offset = $this->count;
@@ -227,7 +230,7 @@ class Layers extends AbstractLayers
     /**
      * {@inheritdoc}
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new NotSupportedException("Removing frames is not supported yet.");
     }

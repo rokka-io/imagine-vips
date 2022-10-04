@@ -15,6 +15,11 @@ use Jcupitt\Vips\Image as VipsImage;
 
 class Drawer implements DrawerInterface
 {
+    /**
+     * @var \Imagine\Vips\Image
+     */
+    private $image;
+
     public function __construct(Image $image)
     {
         $this->image = $image;
@@ -28,6 +33,8 @@ class Drawer implements DrawerInterface
         $width = null
     ) {
         $this->textWithHeight($string, $font, $position, $angle, $width);
+
+        return $this;
     }
 
     /**

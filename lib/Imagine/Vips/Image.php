@@ -72,10 +72,12 @@ class Image extends AbstractImage
      * @var VipsImage
      */
     protected $vips;
+
     /**
-     * @var Layers
+     * @var \Imagine\Image\LayersInterface
      */
     protected $layers;
+
     /**
      * @var PaletteInterface
      */
@@ -790,7 +792,8 @@ class Image extends AbstractImage
             return $image;
         }
         $i = 0;
-        foreach ($this->layers()->getResources() as $res) {
+        foreach ($this->layers() as $layer) {
+            $res = $layer->getResources();
             if (0 == $i) {
                 ++$i;
                 continue;
@@ -1188,7 +1191,7 @@ class Image extends AbstractImage
      * @throws \Imagine\Exception\RuntimeException
      * @throws \Jcupitt\Vips\Exception
      */
-    private function joinMultilayer($format, self $image): \Jcupitt\Vips\Image
+    private function joinMultilayer($format, self $image): VipsImage
     {
         $vips = $this->getVips();
         if ((('webp' === $format && version_compare(vips_version(), '8.8.0', '>='))
@@ -1199,7 +1202,8 @@ class Image extends AbstractImage
             $width = $vips->width;
             $vips->set('page-height', $height);
 
-            foreach ($image->layers()->getResources() as $_k => $_v) {
+            foreach ($image->layers() as $_k => $layer) {
+                $_v = $layer->getResources();
                 if (0 === $_k) {
                     continue;
                 }

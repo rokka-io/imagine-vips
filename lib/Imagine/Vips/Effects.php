@@ -98,6 +98,7 @@ class Effects implements EffectsInterface
         } catch (Exception $e) {
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);
         }
+
         return $this;
     }
 
@@ -163,14 +164,12 @@ class Effects implements EffectsInterface
      * @param int $brightness Multiplier in percent
      * @param int $saturation Multiplier in percent
      * @param int $hue        rotate by degrees on the color wheel, 0/360 don't change anything
-     *
-     * @return RokkaImageInterface
      */
-
-    public function modulate(int $brightness = 100, int $saturation = 100, int $hue = 0): RokkaImageInterface
+    public function modulate(int $brightness = 100, int $saturation = 100, int $hue = 0): self
     {
-        $originalColorspace = $this->vips->interpretation;
-        $lch = $this->vips->colourspace(Interpretation::LCH);
+        $vips = $this->image->getVips();
+        $originalColorspace = $vips->interpretation;
+        $lch = $vips->colourspace(Interpretation::LCH);
         $multiply = [$brightness / 100, $saturation / 100, 1];
         if ($lch->hasAlpha()) {
             $multiply[] = 1;
@@ -189,7 +188,7 @@ class Effects implements EffectsInterface
             $originalColorspace = Interpretation::SRGB;
         }
         $image = $lch->colourspace($originalColorspace);
-        $this->setVips($image);
+        $this->image->setVips($image);
 
         return $this;
     }
