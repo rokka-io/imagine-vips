@@ -441,7 +441,8 @@ class Image extends AbstractImage
 
         if (null !== $method) {
             try {
-                return $vips->$method($path, $saveOptions);
+                $vips->$method($path, $saveOptions);
+                return $this;
             } catch (\Jcupitt\Vips\Exception $e) {
                 // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
                 // installed
