@@ -46,9 +46,9 @@ use Jcupitt\Vips\Interpretation;
  */
 class Image extends AbstractImage
 {
-    const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB.icm';
-    const ICC_DEFAULT_PROFILE_BW = 'gray.icc';
-    const ICC_DEFAULT_PROFILE_CMYK = 'cmyk.icm';
+    public const ICC_DEFAULT_PROFILE_DEFAULT = 'sRGB.icm';
+    public const ICC_DEFAULT_PROFILE_BW = 'gray.icc';
+    public const ICC_DEFAULT_PROFILE_CMYK = 'cmyk.icm';
 
     public const OPTION_JPEG_QUALITY = 'jpeg_quality';
     public const OPTION_PNG_QUALITY = 'png_quality';
@@ -108,7 +108,7 @@ class Image extends AbstractImage
         $this->palette = $palette;
         $this->layers = new Layers($this);
         if ($palette instanceof CMYK) {
-            //convert to RGB when it's CMYK to make life much easier later on.
+            // convert to RGB when it's CMYK to make life much easier later on.
             // If someone really needs CMYK support, there's lots of stuff failing, which needs to be fixed
             // But  it could be added.
             $new = $this->usePalette(new RGB());
@@ -405,7 +405,7 @@ class Image extends AbstractImage
                         break;
                     default:
                         if (!$vips->hasAlpha()) {
-                            //FIXME, alpha channel with Grey16 isn't doing well on rotation. there's only alpha in the end
+                            // FIXME, alpha channel with Grey16 isn't doing well on rotation. there's only alpha in the end
                             if (Interpretation::GREY16 !== $vips->interpretation) {
                                 $vips = $vips->bandjoin(255);
                             }
@@ -443,6 +443,7 @@ class Image extends AbstractImage
         if (null !== $method) {
             try {
                 $vips->$method($path, $saveOptions);
+
                 return $this;
             } catch (\Jcupitt\Vips\Exception $e) {
                 // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
@@ -514,7 +515,7 @@ class Image extends AbstractImage
      */
     public function interlace($scheme)
     {
-        //FIXME: implement in vips
+        // FIXME: implement in vips
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
@@ -564,7 +565,7 @@ class Image extends AbstractImage
         }
 
         $mask = $mask->getVips()->colourspace(Interpretation::B_W)->extract_band(0);
-        //remove alpha
+        // remove alpha
         if ($this->vips->hasAlpha()) {
             $new = $this->vips->extract_band(0, ['n' => $this->vips->bands - 1]);
         } else {
@@ -590,7 +591,7 @@ class Image extends AbstractImage
         }
         $lch = $lch->multiply($multiply);
         $lch = $lch->colourspace(Interpretation::B_W);
-        //$lch = $lch->extract_band(0);
+        // $lch = $lch->extract_band(0);
         $newImage = clone $this;
         $newImage->setVips($lch, true);
 
@@ -604,7 +605,7 @@ class Image extends AbstractImage
      */
     public function fill(FillInterface $fill)
     {
-        //FIXME: implement in vips
+        // FIXME: implement in vips
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
@@ -613,7 +614,7 @@ class Image extends AbstractImage
      */
     public function histogram()
     {
-        //FIXME: implement in vips
+        // FIXME: implement in vips
         throw new NotSupportedException(__METHOD__.' not implemented yet in the vips adapter.');
     }
 
@@ -691,7 +692,7 @@ class Image extends AbstractImage
         $vipsNew = $vipsNew->colourspace($newColorspace);
 
         try {
-            //try to remove icc-profile-data, not sure that's always correct, for srgb and 'bw' it seems to.
+            // try to remove icc-profile-data, not sure that's always correct, for srgb and 'bw' it seems to.
             $vipsNew = $vipsNew->copy();
             $vipsNew->remove('icc-profile-data');
         } catch (VipsException $e) {
@@ -796,7 +797,7 @@ class Image extends AbstractImage
         }
         $i = 0;
         if (!($this->layers() instanceof Layers)) {
-            throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.get_class($image->layers()));
+            throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.\get_class($image->layers()));
         }
         foreach ($this->layers()->getResources() as $res) {
             if (0 == $i) {
@@ -911,7 +912,6 @@ class Image extends AbstractImage
 
     /**
      * @param array|null $tiffOptions options to load the tiff image for conversion, eg ['strip' => true]
-     * @param mixed      $asTiff
      *
      * @return string
      */
@@ -928,12 +928,10 @@ class Image extends AbstractImage
 
     /**
      * @param string $path
-     *
-     * @return Image
      */
     private function prepareOutput(array $options, $path = null): self
     {
-        //convert to RGB if it's cmyk
+        // convert to RGB if it's cmyk
         if ($this->palette() instanceof CMYK) {
             return $this->usePalette(new RGB());
         }
@@ -976,7 +974,7 @@ class Image extends AbstractImage
         } elseif ('' !== $extension = pathinfo($path, \PATHINFO_EXTENSION)) {
             $format = $extension;
         } else {
-            //FIXME, may not work
+            // FIXME, may not work
             $format = pathinfo($vips->filename, \PATHINFO_EXTENSION);
         }
         $format = strtolower($format);
@@ -1007,7 +1005,7 @@ class Image extends AbstractImage
             if (!isset($options[self::OPTION_PNG_COMPRESSION_LEVEL])) {
                 $options[self::OPTION_PNG_COMPRESSION_LEVEL] = 7;
             }
-            //FIXME: implement different png_compression_filter
+            // FIXME: implement different png_compression_filter
             if (!isset($options[self::OPTION_PNG_COMPRESSION_FILTER])) {
                 $options[self::OPTION_PNG_COMPRESSION_FILTER] = 5;
             }
@@ -1176,7 +1174,7 @@ class Image extends AbstractImage
 
     private function convertToAlternativeForSave(array $options, self $image, string $format): ImageInterface
     {
-        //fallback to imagemagick or gd
+        // fallback to imagemagick or gd
         $alt = $image->convertToAlternative();
         // set heif quality, if heif is asked for
         if ('heic' === $format || 'heif' === $format) {
@@ -1189,7 +1187,6 @@ class Image extends AbstractImage
     }
 
     /**
-     * @param $format
      * @param \Imagine\Vips\Image $image
      *
      * @throws \Imagine\Exception\OutOfBoundsException
@@ -1208,7 +1205,7 @@ class Image extends AbstractImage
             $vips->set('page-height', $height);
 
             if (!($image->layers() instanceof Layers)) {
-                throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.get_class($image->layers()));
+                throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.\get_class($image->layers()));
             }
             foreach ($image->layers()->getResources() as $_k => $_v) {
                 if (0 === $_k) {
