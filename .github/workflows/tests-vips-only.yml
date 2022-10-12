@@ -1,0 +1,54 @@
+name: Tests with vips-ext only (no ffi)
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  tests:
+    name: ${{ matrix.php }} ${{ matrix.env.COMPOSER_FLAGS }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '7.4'
+          - php: '8.0'
+            env:
+              COMPOSER_FLAGS: "--prefer-lowest"
+          - php: '8.0'
+          - php: '8.1'
+    env:
+      COMPOSER_FLAGS: ${{ matrix.env.COMPOSER_FLAGS }}
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+          extensions: :ffi
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install vips
+        run: sudo apt-get install -y libvips-dev
+
+      - name: Install vips extension
+        run: sudo pecl install vips
+
+      - name: Install vips ext config
+        run:  echo "extension=vips.so" >> $(php -i | grep /.+/php.ini -oE)
+
+      - name: Install composer dependencies
+        run: |
+          composer update --prefer-dist --no-interaction --no-progress --no-ansi ${COMPOSER_FLAGS}
+
+      - name: PHPStan
+        run: composer phpstan
+
+      - name: PHPUnit
+        run: composer phpunit

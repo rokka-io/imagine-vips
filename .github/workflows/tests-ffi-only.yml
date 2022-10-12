@@ -1,4 +1,4 @@
-name: Static analysis wit ffi and without vips-ext
+name: Tests with ffi only (no vips-ext)
 
 on:
   push:
@@ -7,13 +7,14 @@ on:
   pull_request:
 
 jobs:
-  phpstan:
-    name: phpstan  ${{ matrix.php }} ${{ matrix.env.COMPOSER_FLAGS }}
+  tests:
+    name: ${{ matrix.php }} ${{ matrix.env.COMPOSER_FLAGS }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
+          - php: '7.4'
           - php: '8.0'
             env:
               COMPOSER_FLAGS: "--prefer-lowest"
@@ -42,3 +43,6 @@ jobs:
 
       - name: PHPStan
         run: composer phpstan
+
+      - name: PHPUnit
+        run: composer phpunit
