@@ -14,14 +14,16 @@ final class EnabledTest extends TestCase
 
     public function testCorrectLibrary()
     {
-        // if we have ffi installed, it should have the FFI::class
-        if (\extension_loaded('ffi')) {
-            $this->assertTrue(class_exists(FFI::class));
-        } elseif (!\extension_loaded('vips')) {
-            // otherwise, there should be the vips extension
-            $this->fail('Neither ffi nor vips were loaded');
-        } else {
-            $this->assertTrue(\extension_loaded('vips'));
+        // if we have the FFI::class (php-vips 2.0), we need the ffi extension
+        if (class_exists(FFI::class)) {
+            $this->assertTrue(\extension_loaded('ffi'), "The needed ffi extension was not installed");
+            return;
         }
+        // otherwise the vips extension needs to be installed
+        if (\extension_loaded('vips')) {
+            $this->assertTrue(\extension_loaded('vips'), "The needed vips extension was not installed");
+            return;
+        }
+        $this->fail("Neither ffi nor vips were installed");
     }
 }
