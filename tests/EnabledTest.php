@@ -16,14 +16,16 @@ final class EnabledTest extends TestCase
     {
         // if we have the FFI::class (php-vips 2.0), we need the ffi extension
         if (class_exists(FFI::class)) {
-            $this->assertTrue(\extension_loaded('ffi'), "The needed ffi extension was not installed");
+            $this->assertTrue(\extension_loaded('ffi'), 'The needed ffi extension was not installed');
+
             return;
         }
         // otherwise the vips extension needs to be installed
         if (\extension_loaded('vips')) {
-            $this->assertTrue(\extension_loaded('vips'), "The needed vips extension was not installed");
+            $this->assertTrue(\extension_loaded('vips'), 'The needed vips extension was not installed');
+
             return;
         }
-        $this->fail("Neither ffi nor vips were installed");
+        $this->fail('Neither ffi nor vips were installed');
     }
 }
