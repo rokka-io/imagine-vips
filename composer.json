@@ -57,7 +57,7 @@
         "phpunit/phpunit": "^8 || ^9"
     },
     "scripts": {
-        "phpstan": "phpstan analyze -l 3 lib/",
+        "phpstan": "phpstan analyze -l 5 lib/",
         "phpunit": "phpunit tests",
         "lint": "php-cs-fixer fix --dry-run -v --diff",
         "lint:fix": "php-cs-fixer fix  -v --diff"

@@ -42,10 +42,10 @@ class Drawer implements DrawerInterface
      *
      * This code is not totally tested, but works basically.
      *
-     * @param int    $angle
-     * @param null   $width
-     * @param null   $height
-     * @param string $align
+     * @param int      $angle
+     * @param int|null $width
+     * @param int|null $height
+     * @param string   $align
      *
      * @throws \FontLib\Exception\FontNotFoundException
      * @throws \Imagine\Exception\NotSupportedException
