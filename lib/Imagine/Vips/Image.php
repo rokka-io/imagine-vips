@@ -32,6 +32,7 @@ use Imagine\Image\ProfileInterface;
 use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\BandFormat;
 use Jcupitt\Vips\BlendMode;
+use Jcupitt\Vips\Config;
 use Jcupitt\Vips\Direction;
 use Jcupitt\Vips\Exception;
 use Jcupitt\Vips\Exception as VipsException;
@@ -271,7 +272,7 @@ class Image extends AbstractImage
      */
     public function paste(ImageInterface $image, PointInterface $start, $alpha = 100)
     {
-        if (version_compare(vips_version(), '8.6', '<')) {
+        if (version_compare(Config::version(), '8.6', '<')) {
             throw new RuntimeException('The paste method needs at least vips 8.6');
         }
 
@@ -409,7 +410,7 @@ class Image extends AbstractImage
                                 $vips = $vips->bandjoin(255);
                             }
                         }
-                        if (version_compare(vips_version(), '8.6', '<')) {
+                        if (version_compare(Config::version(), '8.6', '<')) {
                             throw new RuntimeException('The rotate method for angles != 90, 180, 270 needs at least vips 8.6');
                         }
                         $vips = $vips->similarity(['angle' => $angle, 'background' => self::getColorArrayAlpha($color, $vips->bands)]);
@@ -1121,7 +1122,7 @@ class Image extends AbstractImage
                 'Q' => $options[self::OPTION_WEBP_QUALITY],
                 'lossless' => $options[self::OPTION_WEBP_LOSSLESS],
             ], $options);
-            if (isset($options[self::OPTION_WEBP_REDUCTION_EFFORT]) && version_compare(vips_version(), '8.8', '>=')) {
+            if (isset($options[self::OPTION_WEBP_REDUCTION_EFFORT]) && version_compare(Config::version(), '8.8', '>=')) {
                 $saveOptions['reduction_effort'] = $options[self::OPTION_WEBP_REDUCTION_EFFORT];
             }
 
@@ -1129,14 +1130,14 @@ class Image extends AbstractImage
         } elseif ('tiff' == $format) {
             $saveOptions = $this->applySaveOptions([], $options);
             $method = 'tiffsave';
-        } elseif (('heif' == $format || 'heic' == $format) && version_compare(vips_version(), '8.8.0', '>=')) {
+        } elseif (('heif' == $format || 'heic' == $format) && version_compare(Config::version(), '8.8.0', '>=')) {
             $saveOptions = $this->applySaveOptions(['Q' => $options[self::OPTION_HEIF_QUALITY], 'strip' => $this->strip], $options);
             $method = 'heifsave';
-        } elseif (('avif' == $format) && version_compare(vips_version(), '8.9.0', '>=')) {
+        } elseif (('avif' == $format) && version_compare(Config::version(), '8.9.0', '>=')) {
             $saveOptions = $this->applySaveOptions(['Q' => $options[self::OPTION_AVIF_QUALITY], 'compression' => 'av1', 'strip' => $this->strip], $options);
             $method = 'heifsave';
         } elseif ('gif' == $format) {
-            if (version_compare(vips_version(), '8.12.0', '>=') && !(isset($options['force_magick']) && true === $options['force_magick'])) {
+            if (version_compare(Config::version(), '8.12.0', '>=') && !(isset($options['force_magick']) && true === $options['force_magick'])) {
                 $saveOptions = $this->applySaveOptions([], $options);
                 $method = 'gifsave';
             } else {
@@ -1144,7 +1145,7 @@ class Image extends AbstractImage
                 $method = 'magicksave';
             }
             $delayProperty = 'delay';
-            if (version_compare(vips_version(), '8.9', '<')) {
+            if (version_compare(Config::version(), '8.9', '<')) {
                 $delayProperty = 'gif-delay';
             }
             if (0 === $this->vips->typeof($delayProperty)) {
@@ -1156,7 +1157,7 @@ class Image extends AbstractImage
         } else {
             // use magicksave, if available and possible
             // ppm in vips has some strange issues, save in fallback...
-            if ('ppm' !== $format && version_compare(vips_version(), '8.7.0', '>=')) {
+            if ('ppm' !== $format && version_compare(Config::version(), '8.7.0', '>=')) {
                 if ('heic' == $format || 'heif' === $format) {
                     $saveOptions = ['quality' => $options[self::OPTION_HEIF_QUALITY], 'format' => $format];
                     $method = 'magicksave';
@@ -1198,7 +1199,7 @@ class Image extends AbstractImage
     private function joinMultilayer($format, self $image): VipsImage
     {
         $vips = $this->getVips();
-        if ((('webp' === $format && version_compare(vips_version(), '8.8.0', '>='))
+        if ((('webp' === $format && version_compare(Config::version(), '8.8.0', '>='))
                 || 'gif' === $format)
             && \count($image->layers()) > 1) {
             $vips = $vips->copy();

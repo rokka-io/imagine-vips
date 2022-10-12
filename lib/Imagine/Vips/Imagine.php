@@ -23,6 +23,7 @@ use Imagine\Image\Palette\RGB;
 use Imagine\Image\VipsProfile;
 use Jcupitt\Vips\Config;
 use Jcupitt\Vips\Exception;
+use Jcupitt\Vips\FFI;
 use Jcupitt\Vips\Image as VipsImage;
 use Jcupitt\Vips\Interpretation;
 
@@ -47,7 +48,7 @@ class Imagine extends AbstractImagine
      */
     public function __construct(array $config = [])
     {
-        if (method_exists(Config::class, 'ffi')) {
+        if (\class_exists(FFI::class)) {
             if (!\extension_loaded('ffi')) {
                 throw new RuntimeException('ffi extension not installed');
             }
@@ -202,7 +203,7 @@ class Imagine extends AbstractImagine
     {
         try {
             // this method only exists in php-vips 2.0
-            if (method_exists(Config::class, 'ffi')) {
+            if (\class_exists(FFI::class)) {
                 // if ffi extension is not installed, we can't use php-vips
                 if (!\extension_loaded('ffi')) {
                     return false;

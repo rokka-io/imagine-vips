@@ -1,6 +1,6 @@
 # libvips adapter for Imagine
 
-[![Static analysis](https://github.com/rokka-io/imagine-vips/actions/workflows/static.yml/badge.svg)](https://github.com/rokka-io/imagine-vips/actions/workflows/static.yml)
+[![Static analysis](https://github.com/rokka-io/imagine-vips/actions/workflows/tests.yml/badge.svg)](https://github.com/rokka-io/imagine-vips/actions/workflows/tests.yml)
 [![Latest Stable Version](https://poser.pugx.org/rokka/imagine-vips/version.png)](https://packagist.org/packages/rokka/imagine-vips)
 
  

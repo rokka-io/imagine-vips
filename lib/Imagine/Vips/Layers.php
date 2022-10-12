@@ -16,6 +16,7 @@ use Imagine\Exception\RuntimeException;
 use Imagine\Image\AbstractLayers;
 use Imagine\Image\Metadata\MetadataBag;
 use Jcupitt\Vips\BlendMode;
+use Jcupitt\Vips\Config;
 use Jcupitt\Vips\Exception;
 
 class Layers extends AbstractLayers
@@ -89,7 +90,7 @@ class Layers extends AbstractLayers
     public function animate($format, $delay, $loops)
     {
         $vips = $this->image->vipsCopy();
-        if (version_compare(vips_version(), '8.9', '<')) {
+        if (version_compare(Config::version(), '8.9', '<')) {
             $vips->set('gif-delay', $delay / 10);
         } else {
             $vips->set('delay', array_fill(0, \count($this), $delay));
@@ -268,7 +269,7 @@ class Layers extends AbstractLayers
      */
     public function getDelays()
     {
-        if (version_compare(vips_version(), '8.9', '<')) {
+        if (version_compare(Config::version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
         $vips = $this->image->getVips();
@@ -288,7 +289,7 @@ class Layers extends AbstractLayers
      */
     public function setDelays($delays)
     {
-        if (version_compare(vips_version(), '8.9', '<')) {
+        if (version_compare(Config::version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
         $vips = $this->image->vipsCopy();
@@ -306,7 +307,7 @@ class Layers extends AbstractLayers
      */
     public function getDelay($index)
     {
-        if (version_compare(vips_version(), '8.9', '<')) {
+        if (version_compare(Config::version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
         $vips = $this->image->getVips();
@@ -337,7 +338,7 @@ class Layers extends AbstractLayers
      */
     public function setDelay($index, $delay)
     {
-        if (version_compare(vips_version(), '8.9', '<')) {
+        if (version_compare(Config::version(), '8.9', '<')) {
             throw new RuntimeException('This feature needs at least vips 8.9');
         }
         $vips = $this->image->getVips();
