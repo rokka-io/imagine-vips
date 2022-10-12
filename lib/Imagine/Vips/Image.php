@@ -635,7 +635,6 @@ class Image extends AbstractImage
         if (\is_array($pixel)) {
             return $this->pixelToColor($pixel);
         }
-        throw new RuntimeException('Error getting color at point. Was not an array.');
     }
 
     /**
