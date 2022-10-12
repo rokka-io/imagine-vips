@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ### 0.31.0 (2022-10-12)
-  * Make it compatible with jcupitt/vips 2.1 (and disable support for 2.0, 1.0.x is still supported)
+  * Make it compatible with jcupitt/vips 2.1 (and disable support for 2.0, 1.0.x is still supported). See https://github.com/libvips/php-vips/pull/147 for details.
   * Add more phpstan tests for all the combinations
   * Replace vips_version with Jcupitt\Vips\Config::version() for better support, when vips-ext is not available
   * Add some simple PHPUnit tests
