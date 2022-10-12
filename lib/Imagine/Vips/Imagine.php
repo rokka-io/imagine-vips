@@ -261,9 +261,9 @@ class Imagine extends AbstractImagine
      * Some files (esp. tiff) can have more than one alpha layer.. We just remove all except one.
      * Not sure, this is the right approach, but good enough for now.
      *
-     * @param Image $vips
+     * @param \Jcupitt\Vips\Image $vips
      *
-     * @return Image
+     * @return \Jcupitt\Vips\Image
      */
     protected function removeUnnecessaryAlphaChannels($vips)
     {
