@@ -53,3 +53,6 @@ jobs:
 
       - name: PHPUnit
         run: composer phpunit
+
+      - name: PHPCsFixer
+        run: composer lint

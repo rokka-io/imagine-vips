@@ -58,6 +58,7 @@
     },
     "scripts": {
         "phpstan": "phpstan analyze -l 3 lib/",
-        "phpunit": "phpunit tests"
+        "phpunit": "phpunit tests",
+        "lint": "php-cs-fixer fix"
     }
 }

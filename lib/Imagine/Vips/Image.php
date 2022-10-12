@@ -443,6 +443,7 @@ class Image extends AbstractImage
         if (null !== $method) {
             try {
                 $vips->$method($path, $saveOptions);
+
                 return $this;
             } catch (\Jcupitt\Vips\Exception $e) {
                 // try the alternative approach if method is magicksave, if we fail here, mainly means that the magicksave stuff isn't
@@ -796,7 +797,7 @@ class Image extends AbstractImage
         }
         $i = 0;
         if (!($this->layers() instanceof Layers)) {
-            throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.get_class($image->layers()));
+            throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.\get_class($image->layers()));
         }
         foreach ($this->layers()->getResources() as $res) {
             if (0 == $i) {
@@ -1208,7 +1209,7 @@ class Image extends AbstractImage
             $vips->set('page-height', $height);
 
             if (!($image->layers() instanceof Layers)) {
-                throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.get_class($image->layers()));
+                throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.\get_class($image->layers()));
             }
             foreach ($image->layers()->getResources() as $_k => $_v) {
                 if (0 === $_k) {

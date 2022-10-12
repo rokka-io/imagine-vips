@@ -48,7 +48,7 @@ class Imagine extends AbstractImagine
      */
     public function __construct(array $config = [])
     {
-        if (\class_exists(FFI::class)) {
+        if (class_exists(FFI::class)) {
             if (!\extension_loaded('ffi')) {
                 throw new RuntimeException('ffi extension not installed');
             }
@@ -203,7 +203,7 @@ class Imagine extends AbstractImagine
     {
         try {
             // this method only exists in php-vips 2.0
-            if (\class_exists(FFI::class)) {
+            if (class_exists(FFI::class)) {
                 // if ffi extension is not installed, we can't use php-vips
                 if (!\extension_loaded('ffi')) {
                     return false;
