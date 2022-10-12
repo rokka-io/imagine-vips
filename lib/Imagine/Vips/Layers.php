@@ -50,7 +50,7 @@ class Layers extends AbstractLayers
         $this->image = $image;
 
         $vips = $image->getVips();
-        //try extracting layers
+        // try extracting layers
         if (null !== $layers) {
             $this->layers = $layers->layers;
             $this->resources = $layers->resources;
@@ -70,7 +70,7 @@ class Layers extends AbstractLayers
                 $this->resources[0] = $vips;
             }
             $this->count = \count($this->resources);
-            //always set the first layer
+            // always set the first layer
             $this->layers[0] = $this->image;
             // we don't need it, it's in $this->image
             unset($this->resources[0]);
@@ -299,8 +299,6 @@ class Layers extends AbstractLayers
     /**
      * Gets delay in milliseconds for a single frame.
      *
-     * @param mixed $index
-     *
      * @throws \Imagine\Exception\RuntimeException
      *
      * @return int|null Delay in miliseconds
@@ -374,7 +372,7 @@ class Layers extends AbstractLayers
         if (!isset($this->layers[$offset])) {
             try {
                 $this->layers[$offset] = new Image($this->resources[$offset], $this->image->palette(), new MetadataBag());
-                //unset resource, not needed anymore, directly from the image object fetched from now on
+                // unset resource, not needed anymore, directly from the image object fetched from now on
                 unset($this->resources[$offset]);
             } catch (Exception $e) {
                 throw new RuntimeException(sprintf('Failed to extract layer %d', $offset), $e->getCode(), $e);

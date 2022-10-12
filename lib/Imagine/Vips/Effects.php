@@ -80,7 +80,7 @@ class Effects implements EffectsInterface
     {
         try {
             $this->image->applyToLayers(function (VipsImage $vips): VipsImage {
-                //FIXME: maybe more interpretations don't work
+                // FIXME: maybe more interpretations don't work
                 if (Interpretation::CMYK == $vips->interpretation) {
                     $vips = $vips->icc_import(['embedded' => true]);
                 }
@@ -93,7 +93,7 @@ class Effects implements EffectsInterface
                 $this->image->vipsCopy();
                 $this->image->getVips()->remove('icc-profile-data');
             } catch (\Jcupitt\Vips\Exception $e) {
-                //throws an exception if not existing, so just move on
+                // throws an exception if not existing, so just move on
             }
         } catch (Exception $e) {
             throw new RuntimeException('Failed to grayscale the image', $e->getCode(), $e);

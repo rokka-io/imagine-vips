@@ -251,7 +251,7 @@ class Imagine extends AbstractImagine
                     break;
                 default:
                     unset($options['shrink']);
-               }
+            }
         }
 
         return $options;

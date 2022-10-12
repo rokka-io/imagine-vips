@@ -42,7 +42,6 @@ class Drawer implements DrawerInterface
      *
      * This code is not totally tested, but works basically.
      *
-     * @param $string
      * @param int    $angle
      * @param null   $width
      * @param null   $height
@@ -122,7 +121,7 @@ class Drawer implements DrawerInterface
         if (!$vips->hasAlpha()) {
             $vips = $vips->bandjoin([0]);
         }
-        //$vips = $vips->premultiply();
+        // $vips = $vips->premultiply();
         $vips = $this->image->pasteVipsImage($overlay, $position);
         $this->image->setVips($vips);
     }

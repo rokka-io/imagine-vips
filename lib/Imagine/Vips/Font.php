@@ -33,7 +33,7 @@ final class Font extends AbstractFont
      */
     public function box($string, $angle = 0)
     {
-        //FIXME, doesn't work for me, maybe I don't have text support compiled in?
+        // FIXME, doesn't work for me, maybe I don't have text support compiled in?
         $text = VipsImage::text($string, ['font' => $this->file, 'size' => $this->size, 'dpi' => 300]);
 
         return new Box($text->width, $text->height);
