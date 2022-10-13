@@ -1,4 +1,4 @@
-name: Tests with vips-ext and ffi
+name: PHPStan and PHPUnit tests
 
 on:
   push:
@@ -6,45 +6,62 @@ on:
 
 jobs:
   tests:
-    name: ${{ matrix.php }} ${{ matrix.env.COMPOSER_FLAGS }}
+    name: PHP ${{ matrix.php }} ${{ matrix.settings }} ${{ matrix.COMPOSER_FLAGS }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+
       matrix:
+        php: ['7.4', '8.0', '8.1' ]
+        settings: ['both', 'vips-only', 'ffi-only']
+        COMPOSER_FLAGS: ['']
+
         include:
-          - php: '7.2' #even though there's no ffi for 7.2, we leave it here for the "complete" coverage
-          - php: '7.3' #even though there's no ffi for 7.3, we leave it here for the "complete" coverage
-          - php: '7.4'
+          - php: '7.2'
+            settings: 'vips-only'
+          - php: '7.3'
+            settings: 'vips-only'
           - php: '8.0'
-            env:
-              COMPOSER_FLAGS: "--prefer-lowest"
+            COMPOSER_FLAGS: "--prefer-lowest"
+            settings: 'vips-only'
           - php: '8.0'
-          - php: '8.1'
-    env:
-      COMPOSER_FLAGS: ${{ matrix.env.COMPOSER_FLAGS }}
+            COMPOSER_FLAGS: "--prefer-lowest"
+            settings: 'both'
+          - php: '8.0'
+            COMPOSER_FLAGS: "--prefer-lowest"
+            settings: 'ffi-only'
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get Settings
+        id: set_var
+        run: |
+          echo "SETTINGS_JSON=$(jq -c . < .github/workflows/settings/${{ matrix.settings }}.json)" >> $GITHUB_ENV
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2
           coverage: none
-
-      - name: Checkout code
-        uses: actions/checkout@v3
+          extensions: ${{fromJson(env.SETTINGS_JSON).extensions}}
 
       - name: Install vips
-        run: sudo apt-get install -y libvips-dev
+        run: sudo apt install -y  ${{fromJson(env.SETTINGS_JSON).aptinstall}} --no-install-recommends
 
       - name: Install vips extension
         run: sudo pecl install vips
+        if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
 
       - name: Install vips ext config
         run:  echo "extension=vips.so" >> $(php -i | grep /.+/php.ini -oE)
+        if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
 
       - name: Install composer dependencies
         run: |
-          composer update --prefer-dist --no-interaction --no-progress --no-ansi ${COMPOSER_FLAGS}
+          composer update --prefer-dist --no-interaction --no-progress --no-ansi ${{ matrix.COMPOSER_FLAGS || '' }}
 
       - name: PHPStan
         run: composer phpstan
