@@ -68,3 +68,6 @@ jobs:
 
       - name: PHPUnit
         run: composer phpunit
+
+      - name: Composer audit
+        run: composer audit

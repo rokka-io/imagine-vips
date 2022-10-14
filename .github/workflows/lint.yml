@@ -23,5 +23,5 @@ jobs:
         run: |
           composer update --prefer-dist --no-interaction --no-progress --no-ansi ${COMPOSER_FLAGS}
 
-      - name: PHPCsFixer
+      - name: PHP CS Fixer
         run: composer lint
