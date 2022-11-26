@@ -1,5 +1,9 @@
 # CHANGELOG
 
+### 0.32.0 (unreleased)
+
+  * Enable loading of animated WebP images. By @andy-wr in https://github.com/rokka-io/imagine-vips/issues/35
+
 ### 0.31.0 (2022-10-12)
   * Make it compatible with jcupitt/vips 2.1 (and disable support for 2.0, 1.0.x is still supported). See https://github.com/libvips/php-vips/pull/147 for details.
   * Add more phpstan tests for all the combinations

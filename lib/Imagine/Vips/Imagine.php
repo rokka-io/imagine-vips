@@ -232,11 +232,15 @@ class Imagine extends AbstractImagine
             case 'VipsForeignLoadHeifFile':
             case 'VipsForeignLoadHeifBuffer':
                 $options['autorotate'] = true;
-                $options['n'] = -1; // not sure this should be enabled by default, to discuss
+                $options['n'] = -1;
                 break;
             case 'VipsForeignLoadGifFile':
             case 'VipsForeignLoadGifBuffer':
-                $options['n'] = -1; // not sure this should be enabled by default, to discuss
+                $options['n'] = -1;
+                break;
+            case 'VipsForeignLoadWebpFile':
+            case 'VipsForeignLoadWebpBuffer':
+                $options['n'] = -1;
                 break;
         }
         $options = array_merge($loadOptions, $options);
