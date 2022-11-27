@@ -28,6 +28,10 @@ class Drawer implements DrawerInterface
     /**
      * Standard text render function for Imagine.
      *
+     * @param string   $string
+     * @param int      $angle
+     * @param int|null $width
+     *
      * @throws \FontLib\Exception\FontNotFoundException
      * @throws \Jcupitt\Vips\Exception
      *
