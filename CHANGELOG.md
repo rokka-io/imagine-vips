@@ -1,8 +1,12 @@
 # CHANGELOG
 
-### 0.32.0 (unreleased)
+### 0.40.0 (unreleased)
 
-  * Enable loading of animated WebP images. By @andy-wr in https://github.com/rokka-io/imagine-vips/issues/35
+  * BC Break! The `\Imagine\Vips\Drawer::text()` method will now behave like in the other adapters. You can
+    still use `\Imagine\Vips\Drawer::textWithHeight()` for the old behaviour. 
+    `\Imagine\Vips\Font::box()` was also updated.
+    By [@phareous](https://github.com/phareous) in https://github.com/rokka-io/imagine-vips/pull/38
+  * Enable loading of animated WebP images. By [@andy-wr](https://github.com/andi-wr) in https://github.com/rokka-io/imagine-vips/issues/35
 
 ### 0.31.0 (2022-10-12)
   * Make it compatible with jcupitt/vips 2.1 (and disable support for 2.0, 1.0.x is still supported). See https://github.com/libvips/php-vips/pull/147 for details.

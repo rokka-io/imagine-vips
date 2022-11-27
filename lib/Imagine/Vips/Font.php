@@ -35,12 +35,12 @@ final class Font extends AbstractFont
     {
         $FL = \FontLib\Font::load($this->file);
 
-        $fontSize = (int)($this->size * (96 / 72));
+        $fontSize = (int) ($this->size * (96 / 72));
         $text = VipsImage::text($string, [
             'fontfile' => $this->file,
-            'font' => $FL->getFontFullName() . ' ' . $fontSize,
+            'font' => $FL->getFontFullName().' '.$fontSize,
             'dpi' => 72,
-            'height' => $fontSize
+            'height' => $fontSize,
         ]);
 
         return new Box($text->width, $text->height);

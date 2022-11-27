@@ -25,16 +25,13 @@ class Drawer implements DrawerInterface
         $this->image = $image;
     }
 
-  /**
-     * Standard text render function for Imagine
-     * @param $string
-     * @param AbstractFont $font
-     * @param PointInterface $position
-     * @param $angle
-     * @param $width
-     * @return $this|Drawer
+    /**
+     * Standard text render function for Imagine.
+     *
      * @throws \FontLib\Exception\FontNotFoundException
      * @throws \Jcupitt\Vips\Exception
+     *
+     * @return $this|Drawer
      */
     public function text(
         $string,
@@ -47,7 +44,7 @@ class Drawer implements DrawerInterface
         $fontSize = (int) ($font->getSize() * (96 / 72));
 
         $text = $this->image->getVips()->text($string, [
-            'font' => \FontLib\Font::load($font->getFile())->getFontFullName() . ' ' . $fontSize,
+            'font' => \FontLib\Font::load($font->getFile())->getFontFullName().' '.$fontSize,
             'fontfile' => $font->getFile(),
             'dpi' => 72,
         ]);
@@ -59,7 +56,7 @@ class Drawer implements DrawerInterface
         $vips = $this->image->getVips();
 
         // write text, the second array is the text background box
-        $overlay = $text->ifthenelse([$red, $green, $blue, $alpha], [0,0,0,0], ['blend' => true]);
+        $overlay = $text->ifthenelse([$red, $green, $blue, $alpha], [0, 0, 0, 0], ['blend' => true]);
 
         $overlay = $overlay->copy(['interpretation' => 'srgb']);
 
@@ -67,7 +64,7 @@ class Drawer implements DrawerInterface
         $overlay = $overlay->embed($position->getX(), $position->getY(), $vips->width, $vips->height);
 
         // @TODO handle animated gif, possible with something like this to expand to full size of gif roll
-        //$overlay = $overlay->replicate(1, $vips->height)
+        // $overlay = $overlay->replicate(1, $vips->height)
 
         // composite text image on top of main image
         $vips = $vips->composite2($overlay, 'over');
