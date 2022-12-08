@@ -37,41 +37,40 @@ class Drawer implements DrawerInterface
      *
      * @return $this|Drawer
      */
-    public function text(
+ public function text(
         $string,
         AbstractFont $font,
         PointInterface $position,
         $angle = 0,
         $width = null
     ) {
+        //@TODO handle animation
+
         [$red, $green, $blue, $alpha] = Image::getColorArrayAlpha($font->getColor());
         $fontSize = (int) ($font->getSize() * (96 / 72));
 
-        $text = $this->image->getVips()->text($string, [
+        $textMask = VipsImage::text($string, [
             'font' => \FontLib\Font::load($font->getFile())->getFontFullName().' '.$fontSize,
             'fontfile' => $font->getFile(),
             'dpi' => 72,
+            'height' => round($fontSize * 72/96),
         ]);
 
         if (0 !== $angle) {
-            $text = $text->similarity(['angle' => $angle]);
+            $textMask = $textMask->similarity(['angle' => $angle]);
         }
+
+        $rgb = $textMask->newFromImage([$red, $green, $blue])->copy(['interpretation' => 'srgb']);
+        $text = $rgb->bandjoin($textMask);
+
+        $textAlpha = $text[$text->bands - 1];
+        $text = $text->extract_band(0, ['n' => $text->bands - 1]);
+        $textAlpha = $textAlpha->multiply($alpha/100);
+        $text = $text->bandjoin($textAlpha);
 
         $vips = $this->image->getVips();
 
-        // write text, the second array is the text background box
-        $overlay = $text->ifthenelse([$red, $green, $blue, $alpha], [0, 0, 0, 0], ['blend' => true]);
-
-        $overlay = $overlay->copy(['interpretation' => 'srgb']);
-
-        // expand to size of the frame, place in proper position
-        $overlay = $overlay->embed($position->getX(), $position->getY(), $vips->width, $vips->height);
-
-        // @TODO handle animated gif, possible with something like this to expand to full size of gif roll
-        // $overlay = $overlay->replicate(1, $vips->height)
-
-        // composite text image on top of main image
-        $vips = $vips->composite2($overlay, 'over');
+        $vips = $vips->composite2($text, 'over', ['x' => $position->getX(), 'y' => $position->getY()]);
 
         $this->image->setVips($vips);
 
