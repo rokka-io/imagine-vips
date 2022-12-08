@@ -37,7 +37,7 @@ class Drawer implements DrawerInterface
      *
      * @return $this|Drawer
      */
- public function text(
+    public function text(
         $string,
         AbstractFont $font,
         PointInterface $position,
