@@ -44,7 +44,7 @@ class Drawer implements DrawerInterface
         $angle = 0,
         $width = null
     ) {
-        //@TODO handle animation
+        // @TODO handle animation
 
         [$red, $green, $blue, $alpha] = Image::getColorArrayAlpha($font->getColor());
         $fontSize = (int) ($font->getSize() * (96 / 72));
@@ -53,7 +53,7 @@ class Drawer implements DrawerInterface
             'font' => \FontLib\Font::load($font->getFile())->getFontFullName().' '.$fontSize,
             'fontfile' => $font->getFile(),
             'dpi' => 72,
-            'height' => round($fontSize * 72/96),
+            'height' => round($fontSize * 72 / 96),
         ]);
 
         if (0 !== $angle) {
@@ -65,7 +65,7 @@ class Drawer implements DrawerInterface
 
         $textAlpha = $text[$text->bands - 1];
         $text = $text->extract_band(0, ['n' => $text->bands - 1]);
-        $textAlpha = $textAlpha->multiply($alpha/100);
+        $textAlpha = $textAlpha->multiply($alpha / 100);
         $text = $text->bandjoin($textAlpha);
 
         $vips = $this->image->getVips();
