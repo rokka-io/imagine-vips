@@ -306,6 +306,7 @@ class Image extends AbstractImage
         $this->applyToLayers(function (VipsImage $vipsLayer) use ($vips): VipsImage {
             return $vipsLayer->composite([$vips], [BlendMode::OVER]);
         });
+
         return $this->vips->copyMemory();
     }
 
