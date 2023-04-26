@@ -303,7 +303,10 @@ class Image extends AbstractImage
 
         $vips = self::extendImageWithVips($vips, $this->getSize(), $start);
 
-        return $this->vips->composite([$vips], [BlendMode::OVER])->copyMemory();
+        $this->applyToLayers(function (VipsImage $vipsLayer) use ($vips): VipsImage {
+            return $vipsLayer->composite([$vips], [BlendMode::OVER]);
+        });
+        return $this->vips->copyMemory();
     }
 
     public static function generateImage(BoxInterface $size, ColorInterface $color = null)
