@@ -243,7 +243,7 @@ class Imagine extends AbstractImagine
                 $options['n'] = -1;
                 break;
         }
-        $options = array_merge($loadOptions, $options);
+        $options = array_merge($options, $loadOptions);
         // FIXME: remove not allowed options
 
         if (isset($options['shrink'])) {
