@@ -96,7 +96,7 @@ class Imagine extends AbstractImagine
     /**
      * {@inheritdoc}
      */
-    public function create(BoxInterface $size, ColorInterface $color = null)
+    public function create(BoxInterface $size, ?ColorInterface $color = null)
     {
         $vips = Image::generateImage($size, $color);
 

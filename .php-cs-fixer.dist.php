@@ -30,7 +30,16 @@ return $config
         'strict_param' => true,
         'native_function_invocation' => ['include' => ['@compiler_optimized']],
         'phpdoc_no_empty_return' => false,
-        'no_superfluous_phpdoc_tags' => true,
+        'no_superfluous_phpdoc_tags' => false,
+        'fully_qualified_strict_types' => false,
+        'native_function_invocation' => false,
+        'no_null_property_initialization' => false,
+        'phpdoc_trim' => false,
+        'blank_line_before_statement' => false,
+        'phpdoc_add_missing_param_annotation' => false,
+        'modernize_strpos' => false,
+        'trailing_comma_in_multiline' => false,
+        'no_whitespace_in_blank_line' => false,
     ])
     ->setFinder(
         $finder
