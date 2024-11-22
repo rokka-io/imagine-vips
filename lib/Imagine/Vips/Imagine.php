@@ -202,20 +202,25 @@ class Imagine extends AbstractImagine
     public static function hasVipsInstalled()
     {
         try {
-            // this method only exists in php-vips 2.0
-            if (class_exists(FFI::class)) {
-                // if ffi extension is not installed, we can't use php-vips
-                if (!\extension_loaded('ffi')) {
-                    return false;
-                }
+            // if we're still on php-vips 1.0, check if 'vips' extension is installed
+            if (\extension_loaded('vips')) {
+                return true;
+            }
+            
+            if (class_exists(FFI::class)
+                // if ffi extension is not installed, we can't use php-vips 2
+                && extension_loaded('ffi')
+                // preload is not yet supported by vips see https://github.com/libvips/php-vips
+                && '1' === \ini_get('ffi.enable')
+            ) {
                 // this will throw an exception, if libvips is not installed
                 // will return false in the catch block
                 Config::version();
 
                 return true;
             }
-            // if we're still on php-vips 1.0, check if 'vips' extension is installed
-            return \extension_loaded('vips');
+            
+            return false;
         } catch (\Exception $e) {
             return false;
         }
