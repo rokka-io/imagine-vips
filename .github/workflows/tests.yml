@@ -55,7 +55,9 @@ jobs:
           extensions: ${{fromJson(env.SETTINGS_JSON).extensions}}
 
       - name: Install vips
-        run: sudo apt install -y  ${{fromJson(env.SETTINGS_JSON).aptinstall}} --no-install-recommends
+        run: |
+          sudo apt update
+          sudo apt install -y  ${{fromJson(env.SETTINGS_JSON).aptinstall}} --no-install-recommends
 
       - name: Install vips extension
         run: sudo pecl install vips
