@@ -78,7 +78,7 @@ jobs:
 
       - name: Debug PHP settings
         run: |
-          php -r 'echo "Has VIPS Extension: " . (extension_loaded("vips") ? "true" : "false") . PHP_EOL; Has FFI Extension: " . (extension_loaded("ffi") ? "true" : "false") . PHP_EOL; echo "Has FFI Class: " . (class_exists(FFI::class) ? "true" : "false") . PHP_EOL; echo "Has FFI Enabled: " . (ini_get("ffi.enable") === "1" ? "true" : "false") . PHP_EOL; echo "Has zend.max_allowed_stack_size correct: " . (ini_get("zend.max_allowed_stack_size") === "-1" ? "true" : "false") . PHP_EOL;'
+          php -r 'echo "Has VIPS Extension: " . (extension_loaded("vips") ? "true" : "false") . PHP_EOL; Has FFI Extension: " . (extension_loaded("ffi") ? "true" : "false") . PHP_EOL; echo "Has FFI Class: " . (class_exists("FFI") ? "true" : "false") . PHP_EOL; echo "Has FFI Enabled: " . (ini_get("ffi.enable") === "1" ? "true" : "false") . PHP_EOL; echo "Has zend.max_allowed_stack_size correct: " . (ini_get("zend.max_allowed_stack_size") === "-1" ? "true" : "false") . PHP_EOL;'
 
       - name: PHPStan
         run: composer phpstan
