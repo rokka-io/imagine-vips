@@ -67,6 +67,10 @@ jobs:
       - name: Enable ffi # preload is currently not supported. See https://github.com/libvips/php-vips
         run:  echo "ffi.enable = true" >> $(php -i | grep /.+/php.ini -oE)
         if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
+        
+      - name: Disable zend.max_allowed_stack_size # See https://github.com/libvips/php-vips
+        run:  echo "zend.max_allowed_stack_size = -1" >> $(php -i | grep /.+/php.ini -oE)
+        if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
 
       - name: Install composer dependencies
         run: |
