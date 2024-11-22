@@ -63,6 +63,10 @@ jobs:
       - name: Install vips ext config
         run:  echo "extension=vips.so" >> $(php -i | grep /.+/php.ini -oE)
         if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
+        
+      - name: Enable ffi # preload is currently not supported. See https://github.com/libvips/php-vips
+        run:  echo "ffi.enable = true" >> $(php -i | grep /.+/php.ini -oE)
+        if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
 
       - name: Install composer dependencies
         run: |
