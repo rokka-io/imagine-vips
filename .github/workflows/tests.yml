@@ -50,6 +50,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2
+          ini-values: ${{fromJson(env.SETTINGS_JSON).ini_values}}
           coverage: none
           extensions: ${{fromJson(env.SETTINGS_JSON).extensions}}
 
@@ -62,14 +63,6 @@ jobs:
 
       - name: Install vips ext config
         run:  echo "extension=vips.so" >> $(php -i | grep /.+/php.ini -oE)
-        if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
-        
-      - name: Enable ffi # preload is currently not supported. See https://github.com/libvips/php-vips
-        run:  echo "ffi.enable = true" >> $(php -i | grep /.+/php.ini -oE)
-        if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
-        
-      - name: Disable zend.max_allowed_stack_size # See https://github.com/libvips/php-vips
-        run:  echo "zend.max_allowed_stack_size = -1" >> $(php -i | grep /.+/php.ini -oE)
         if: fromJson(env.SETTINGS_JSON).aptinstall == 'libvips-dev'
 
       - name: Install composer dependencies
