@@ -68,6 +68,10 @@ jobs:
         run: |
           composer update --prefer-dist --no-interaction --no-progress --no-ansi ${{ matrix.COMPOSER_FLAGS || '' }}
 
+      - name: Debug PHP settings
+        run: |
+          php -r 'echo "Has FFI Extension: " . (extension_loaded("ffi") ? "true" : "false") . PHP_EOL; echo "Has FFI Class: " . (class_exists(FFI::class) ? "true" : "false") . PHP_EOL; echo "Has FFI Enabled: " . (ini_get("ffi.enable") === "1" ? "true" : "false") . PHP_EOL; echo "Has zend.max_allowed_stack_size correct: " . (ini_get("zend.max_allowed_stack_size") === "-1" ? "true" : "false") . PHP_EOL;'
+
       - name: PHPStan
         run: composer phpstan
 
