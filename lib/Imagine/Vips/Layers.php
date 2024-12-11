@@ -45,7 +45,7 @@ class Layers extends AbstractLayers
      */
     private $count = 0;
 
-    public function __construct(Image $image, self $layers = null)
+    public function __construct(Image $image, ?self $layers = null)
     {
         $this->image = $image;
 

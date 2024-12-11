@@ -1,4 +1,5 @@
 {
     "extensions": "",
+    "ini_values": "ffi.enable=true, zend.max_allowed_stack_size=-1",
     "aptinstall": "libvips"
 }

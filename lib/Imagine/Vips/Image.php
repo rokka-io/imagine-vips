@@ -310,7 +310,7 @@ class Image extends AbstractImage
         return $this->vips->copyMemory();
     }
 
-    public static function generateImage(BoxInterface $size, ColorInterface $color = null)
+    public static function generateImage(BoxInterface $size, ?ColorInterface $color = null)
     {
         $width = $size->getWidth();
         $height = $size->getHeight();
@@ -385,7 +385,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function rotate($angle, ColorInterface $background = null)
+    public function rotate($angle, ?ColorInterface $background = null)
     {
         $color = $background ?: $this->palette->color('fff');
         try {
@@ -768,7 +768,7 @@ class Image extends AbstractImage
      *
      * @return ImageInterface
      */
-    public function convertToAlternative(ImagineInterface $imagine = null, array $tiffOptions = [], $asTiff = false)
+    public function convertToAlternative(?ImagineInterface $imagine = null, array $tiffOptions = [], $asTiff = false)
     {
         if (null === $imagine) {
             $oldMetaReader = null;

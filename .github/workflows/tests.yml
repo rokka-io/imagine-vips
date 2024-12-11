@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
 
       matrix:
-        php: ['7.4', '8.0', '8.1']
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4']
         settings: ['both', 'vips-only', 'ffi-only']
         COMPOSER_FLAGS: ['']
 
@@ -50,11 +50,14 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2
+          ini-values: ${{fromJson(env.SETTINGS_JSON).ini_values}}
           coverage: none
           extensions: ${{fromJson(env.SETTINGS_JSON).extensions}}
 
       - name: Install vips
-        run: sudo apt install -y  ${{fromJson(env.SETTINGS_JSON).aptinstall}} --no-install-recommends
+        run: |
+          sudo apt update
+          sudo apt install -y  ${{fromJson(env.SETTINGS_JSON).aptinstall}} --no-install-recommends
 
       - name: Install vips extension
         run: sudo pecl install vips
@@ -68,6 +71,10 @@ jobs:
         run: |
           composer update --prefer-dist --no-interaction --no-progress --no-ansi ${{ matrix.COMPOSER_FLAGS || '' }}
 
+      - name: Debug PHP settings
+        run: |
+          php -r 'echo "Has VIPS Extension: " . (extension_loaded("vips") ? "true" : "false") . PHP_EOL; echo "Has FFI Extension: " . (extension_loaded("ffi") ? "true" : "false") . PHP_EOL; echo "Has FFI Class: " . (class_exists(FFI::class) ? "true" : "false") . PHP_EOL; echo "Has FFI Enabled: " . (ini_get("ffi.enable") === "1" ? "true" : "false") . PHP_EOL; echo "Has zend.max_allowed_stack_size correct: " . (ini_get("zend.max_allowed_stack_size") === "-1" ? "true" : "false") . PHP_EOL;'
+
       - name: PHPStan
         run: composer phpstan
 
@@ -75,4 +82,5 @@ jobs:
         run: composer phpunit
 
       - name: Composer audit
-        run: composer audit
+        run: |
+          composer audit --no-dev
