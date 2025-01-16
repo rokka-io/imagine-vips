@@ -27,7 +27,7 @@
         "php": "^7.2 || ^8.0",
         "imagine/imagine": "^1.0",
         "jcupitt/vips" : "^2.1.1 || ^1.0.3",
-        "phenx/php-font-lib": "^0.5.2"
+        "phenx/php-font-lib": "^0.5.2 || ^1.0"
 
     },
     "require-dev": {
