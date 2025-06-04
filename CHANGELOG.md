@@ -1,4 +1,9 @@
 # CHANGELOG
+### 0.41.0 (xxxx-xx-xx)
+
+  * BC Break! If you tried to overwrite `autorotate` or `n` defaults via the load/open methods, they didn't apply.
+    If you do that, they are actually applied now, which might change the behaviour of your code.
+    https://github.com/rokka-io/imagine-vips/pull/43.
 
 ### 0.40.0 (2025-01-16)
 
