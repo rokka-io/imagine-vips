@@ -9,6 +9,7 @@
 
 namespace Imagine\Vips;
 
+use Imagine\Driver\InfoProvider;
 use Imagine\Exception\InvalidArgumentException;
 use Imagine\Exception\NotSupportedException;
 use Imagine\Exception\RuntimeException;
@@ -30,7 +31,7 @@ use Jcupitt\Vips\Interpretation;
 /**
  * Imagine implementation using the Vips PHP extension.
  */
-class Imagine extends AbstractImagine
+class Imagine extends AbstractImagine implements InfoProvider
 {
     /**
      * Initialize imagine library.
@@ -73,6 +74,14 @@ class Imagine extends AbstractImagine
                     break;
             }
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getDriverInfo($required = true)
+    {
+        return DriverInfo::get($required);
     }
 
     public function open($path, $loadOptions = [])
