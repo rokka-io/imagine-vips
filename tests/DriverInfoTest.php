@@ -3,6 +3,7 @@
 use Imagine\Driver\Info;
 use Imagine\Driver\InfoProvider;
 use Imagine\Exception\NotSupportedException;
+use Imagine\Image\Format;
 use Imagine\Image\FormatList;
 use Imagine\Image\Palette\CMYK;
 use Imagine\Image\Palette\Grayscale;
@@ -124,6 +125,39 @@ final class DriverInfoTest extends TestCase
         $this->assertTrue($info->isFormatSupported('png'));
         $this->assertSame($info->isFormatSupported('jpeg'), $info->isFormatSupported('jpg'));
         $this->assertFalse($info->isFormatSupported('not-a-format'));
+    }
+
+    public function testFormatProbesAreLazyAndSharedWithTheFullList(): void
+    {
+        $probed = [];
+        $info = $this->getMockBuilder(DriverInfo::class)->disableOriginalConstructor()
+            ->setMethods(['canRoundTripFormat'])->getMock();
+        $info->method('canRoundTripFormat')->willReturnCallback(static function (Format $format) use (&$probed): bool {
+            $probed[] = $format->getID();
+
+            return Format::ID_JPEG === $format->getID();
+        });
+
+        $this->assertFalse($info->isFormatSupported('not-a-format'));
+        $this->assertSame([], $probed);
+        $this->assertTrue($info->isFormatSupported('jpg'));
+        $this->assertTrue($info->isFormatSupported('jpeg'));
+        $this->assertTrue($info->isFormatSupported(Format::get('jpeg')));
+        $this->assertSame(['jpeg'], $probed);
+        $this->assertFalse($info->isFormatSupported('wbmp'));
+        $this->assertFalse($info->isFormatSupported('wbmp'));
+        $this->assertSame(['jpeg', 'wbmp'], $probed);
+
+        $formats = $info->getSupportedFormats();
+        $this->assertSame([Format::get('jpeg')], $formats->getAll());
+        $this->assertCount(count(Format::getAll()), $probed);
+        $this->assertSame($probed, array_unique($probed));
+        $probedBefore = $probed;
+        foreach (Format::getAll() as $format) {
+            $this->assertSame(Format::ID_JPEG === $format->getID(), $info->isFormatSupported($format));
+        }
+        $this->assertSame($formats, $info->getSupportedFormats());
+        $this->assertSame($probedBefore, $probed);
     }
 
     private function createDriverInfo(string $version = '8.12.0'): DriverInfo

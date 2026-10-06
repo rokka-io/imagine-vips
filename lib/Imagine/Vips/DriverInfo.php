@@ -31,6 +31,11 @@ class DriverInfo extends AbstractInfo
      */
     private static $instance;
 
+    /**
+     * @var array<string, bool>
+     */
+    private $formatSupport = [];
+
     final protected function __construct()
     {
         try {
@@ -73,6 +78,24 @@ class DriverInfo extends AbstractInfo
         if (!$palette instanceof RGB && !$palette instanceof CMYK && !$palette instanceof Grayscale) {
             throw new NotSupportedException('Vips supports only RGB, CMYK and Grayscale palettes');
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isFormatSupported($format)
+    {
+        $format = $format instanceof Format ? $format : Format::get($format);
+        if (null === $format) {
+            return false;
+        }
+
+        $id = $format->getID();
+        if (!isset($this->formatSupport[$id])) {
+            $this->formatSupport[$id] = $this->canRoundTripFormat($format);
+        }
+
+        return $this->formatSupport[$id];
     }
 
     /**
@@ -126,12 +149,34 @@ class DriverInfo extends AbstractInfo
     {
         $formats = [];
         foreach (Format::getAll() as $format) {
-            if ($this->canRoundTripFormat($format)) {
+            if ($this->isFormatSupported($format)) {
                 $formats[] = $format;
             }
         }
 
         return new FormatList($formats);
+    }
+
+    protected function canRoundTripFormat(Format $format): bool
+    {
+        // Probe the adapter itself so optional codecs and saving fallbacks are included.
+        // Individual results are cached by format ID, including unsupported formats.
+        // AbstractInfo also caches the complete list after it is requested.
+        try {
+            $imagine = new Imagine();
+            $options = [];
+            if (Format::ID_HEIC === $format->getID()) {
+                $options[Image::OPTION_HEIF_QUALITY] = 75;
+            } elseif (Format::ID_AVIF === $format->getID()) {
+                $options[Image::OPTION_AVIF_QUALITY] = 75;
+            }
+            $data = $imagine->create(new Box(1, 1))->get($format->getID(), $options);
+            $imagine->load($data);
+
+            return true;
+        } catch (\Exception $exception) {
+            return false;
+        }
     }
 
     private static function normalizeVersion(string $version): string
@@ -156,27 +201,6 @@ class DriverInfo extends AbstractInfo
             }
         } catch (\Throwable $exception) {
             throw new NotSupportedException(sprintf('Vips operation %s is not available', $operation), 0, $exception);
-        }
-    }
-
-    private function canRoundTripFormat(Format $format): bool
-    {
-        // Probe the adapter itself so optional codecs and saving fallbacks are included.
-        // AbstractInfo caches the resulting format list after the first request.
-        try {
-            $imagine = new Imagine();
-            $options = [];
-            if (Format::ID_HEIC === $format->getID()) {
-                $options[Image::OPTION_HEIF_QUALITY] = 75;
-            } elseif (Format::ID_AVIF === $format->getID()) {
-                $options[Image::OPTION_AVIF_QUALITY] = 75;
-            }
-            $data = $imagine->create(new Box(1, 1))->get($format->getID(), $options);
-            $imagine->load($data);
-
-            return true;
-        } catch (\Exception $exception) {
-            return false;
         }
     }
 }
