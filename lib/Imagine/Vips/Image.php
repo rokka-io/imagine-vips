@@ -207,7 +207,7 @@ class Image extends AbstractImage
             }
         }
         try {
-            $this->applyToLayers(function (VipsImage $vips) use ($size, $start): VipsImage {
+            $this->applyToLayers(static function (VipsImage $vips) use ($size, $start): VipsImage {
                 return $vips->crop($start->getX(), $start->getY(), $size->getWidth(), $size->getHeight());
             });
         } catch (VipsException $e) {
@@ -225,7 +225,7 @@ class Image extends AbstractImage
     public function flipHorizontally()
     {
         try {
-            $this->applyToLayers(function (VipsImage $vips): VipsImage {
+            $this->applyToLayers(static function (VipsImage $vips): VipsImage {
                 return $vips->flip(Direction::HORIZONTAL);
             });
         } catch (VipsException $e) {
@@ -243,7 +243,7 @@ class Image extends AbstractImage
     public function flipVertically()
     {
         try {
-            $this->applyToLayers(function (VipsImage $vips): VipsImage {
+            $this->applyToLayers(static function (VipsImage $vips): VipsImage {
                 return $vips->flip(Direction::VERTICAL);
             });
         } catch (VipsException $e) {
@@ -303,7 +303,7 @@ class Image extends AbstractImage
 
         $vips = self::extendImageWithVips($vips, $this->getSize(), $start);
 
-        $this->applyToLayers(function (VipsImage $vipsLayer) use ($vips): VipsImage {
+        $this->applyToLayers(static function (VipsImage $vipsLayer) use ($vips): VipsImage {
             return $vipsLayer->composite([$vips], [BlendMode::OVER]);
         });
 
@@ -346,7 +346,7 @@ class Image extends AbstractImage
     public function resize(BoxInterface $size, $filter = ImageInterface::FILTER_UNDEFINED)
     {
         try {
-            $this->applyToLayers(function (VipsImage $vips) use ($size): VipsImage {
+            $this->applyToLayers(static function (VipsImage $vips) use ($size): VipsImage {
                 $original_format = $vips->format;
                 if ($vips->hasAlpha()) {
                     $vips = $vips->premultiply();
@@ -389,7 +389,7 @@ class Image extends AbstractImage
     {
         $color = $background ?: $this->palette->color('fff');
         try {
-            $this->applyToLayers(function (VipsImage $vips) use ($angle, $color): VipsImage {
+            $this->applyToLayers(static function (VipsImage $vips) use ($angle, $color): VipsImage {
                 switch ($angle) {
                     case 0:
                     case 360:
@@ -799,7 +799,7 @@ class Image extends AbstractImage
             return $image;
         }
         $i = 0;
-        if (!($this->layers() instanceof Layers)) {
+        if (!$this->layers() instanceof Layers) {
             throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.\get_class($image->layers()));
         }
         foreach ($this->layers()->getResources() as $res) {
@@ -1207,7 +1207,7 @@ class Image extends AbstractImage
             $width = $vips->width;
             $vips->set('page-height', $height);
 
-            if (!($image->layers() instanceof Layers)) {
+            if (!$image->layers() instanceof Layers) {
                 throw new \RuntimeException('Layers was not the correct class: '.Layers::class.', but '.\get_class($image->layers()));
             }
             foreach ($image->layers()->getResources() as $_k => $_v) {
