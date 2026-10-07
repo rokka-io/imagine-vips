@@ -40,6 +40,10 @@ return $config
         'modernize_strpos' => false,
         'trailing_comma_in_multiline' => false,
         'no_whitespace_in_blank_line' => false,
+        // Imagine interfaces document `@return $this`; a native `void` would break that contract and subclasses
+        'void_return' => false,
+        // newer fixer versions would strip the existing strict_types declarations from the tests
+        'declare_strict_types' => false,
     ])
     ->setFinder(
         $finder

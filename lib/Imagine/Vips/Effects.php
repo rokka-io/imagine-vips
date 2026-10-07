@@ -39,7 +39,7 @@ class Effects implements EffectsInterface
     public function gamma($correction)
     {
         try {
-            $this->image->applyToLayers(function (VipsImage $vips) use ($correction): VipsImage {
+            $this->image->applyToLayers(static function (VipsImage $vips) use ($correction): VipsImage {
                 return $vips->gamma(['exponent' => $correction]);
             });
         } catch (Exception $e) {
@@ -55,7 +55,7 @@ class Effects implements EffectsInterface
     public function negative()
     {
         try {
-            $this->image->applyToLayers(function (VipsImage $vips): VipsImage {
+            $this->image->applyToLayers(static function (VipsImage $vips): VipsImage {
                 if ($vips->hasAlpha()) {
                     $imageWithoutAlpha = $vips->extract_band(0, ['n' => $vips->bands - 1]);
                     $alpha = $vips->extract_band($vips->bands - 1, ['n' => 1]);
@@ -79,7 +79,7 @@ class Effects implements EffectsInterface
     public function grayscale()
     {
         try {
-            $this->image->applyToLayers(function (VipsImage $vips): VipsImage {
+            $this->image->applyToLayers(static function (VipsImage $vips): VipsImage {
                 // FIXME: maybe more interpretations don't work
                 if (Interpretation::CMYK == $vips->interpretation) {
                     $vips = $vips->icc_import(['embedded' => true]);
@@ -116,7 +116,7 @@ class Effects implements EffectsInterface
     public function sharpen()
     {
         try {
-            $this->image->applyToLayers(function (VipsImage $vips): VipsImage {
+            $this->image->applyToLayers(static function (VipsImage $vips): VipsImage {
                 $oldinterpretation = $vips->interpretation;
                 $vips = $vips->sharpen();
                 if ($oldinterpretation != $vips->interpretation) {
@@ -138,7 +138,7 @@ class Effects implements EffectsInterface
     public function blur($sigma = 1)
     {
         try {
-            $this->image->applyToLayers(function (VipsImage $vips) use ($sigma): VipsImage {
+            $this->image->applyToLayers(static function (VipsImage $vips) use ($sigma): VipsImage {
                 return $vips->gaussblur($sigma);
             });
         } catch (\Exception $e) {

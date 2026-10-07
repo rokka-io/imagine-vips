@@ -12,30 +12,20 @@ jobs:
       fail-fast: false
 
       matrix:
-        php: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4']
+        php: ['8.2', '8.3', '8.4', '8.5']
         settings: ['both', 'vips-only', 'ffi-only']
         COMPOSER_FLAGS: ['']
 
         include:
-          - php: '7.2'
-            settings: 'vips-only'
-          - php: '7.3'
-            settings: 'vips-only'
-          - php: '8.0'
+          - php: '8.2'
             COMPOSER_FLAGS: "--prefer-lowest"
             settings: 'vips-only'
-          - php: '8.0'
+          - php: '8.2'
             COMPOSER_FLAGS: "--prefer-lowest"
             settings: 'both'
-          - php: '8.0'
+          - php: '8.2'
             COMPOSER_FLAGS: "--prefer-lowest"
             settings: 'ffi-only'
-          # currently fails on PHP 8.2 with vips-only, due to https://github.com/libvips/php-vips/pull/174
-          # once php-vips 1.0.10 is out, we can enable tests for PHP 8.2 for all "settings" and put this above in matrix.php
-          - php: '8.2'
-            settings: 'ffi-only'
-          - php: '8.2'
-            settings: 'both'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
