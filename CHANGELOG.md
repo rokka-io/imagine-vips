@@ -1,4 +1,11 @@
 # CHANGELOG
+### 0.42.0 (2026-10-21)
+
+  * BC Break! PHP 8.2 or newer is now required, as PHP 8.1 and older are end of life. The minimum `jcupitt/vips` 1.x
+    version is now 1.0.10. Tested on PHP 8.2 to 8.5. https://github.com/rokka-io/imagine-vips/pull/50
+  * Add driver information support. `\Imagine\Vips\Imagine::getDriverInfo()` reports the libvips version and the
+    supported formats, palettes and features. By [@Toflar](https://github.com/Toflar) in https://github.com/rokka-io/imagine-vips/pull/49
+
 ### 0.41.0 (2025-06-04)
 
   * BC Break! If you tried to overwrite `autorotate` or `n` defaults via the load/open methods, they didn't apply.
